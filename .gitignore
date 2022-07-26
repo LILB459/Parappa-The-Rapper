@@ -1,0 +1,11 @@
+# Exclude build files
+build/
+out/
+bin/
+
+# Exclude data files
+data/
+
+# Exclude IDE files
+.vscode/
+.vs/
