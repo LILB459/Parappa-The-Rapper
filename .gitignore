@@ -1,7 +1,13 @@
 # Exclude build files
 build/
 out/
-bin/
+*.elf
+*.exe
+*.pdb
+
+# Exclude mod files
+bin/Mods/*
+!bin/Mods/README.txt
 
 # Exclude data files
 data/

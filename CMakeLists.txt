@@ -12,12 +12,22 @@ option(MSVC_LINK_STATIC_RUNTIME "Link the static MSVC runtime library (Visual St
 #########
 
 # Define project, source, and includes
-project(PaperPup LANGUAGES C CXX)
+project(
+	PaperPup
+	LANGUAGES    C CXX
+	VERSION      0.0.1
+	DESCRIPTION  "PaperPup"
+	HOMEPAGE_URL "https://ckdev.org"
+)
 
 add_executable(PaperPup WIN32
 	# = PaperPup =
 	"src/PaperPup.cpp"
 	"src/PaperPup.h"
+	"src/LuaController.cpp"
+	"src/LuaController.h"
+
+	# = PaperPup Libraries =
 )
 
 target_include_directories(PaperPup PRIVATE "src")
@@ -90,16 +100,23 @@ endif()
 ##########
 if(PAPERPUP_PLATFORM MATCHES "Win32")
 	message(STATUS "[PaperPup] Targeting Win32")
+
+	# Compile sources
+	target_sources(PaperPup PRIVATE
+		# = Win32 =
+		"src/Platform/Win32/Win32.cpp"
+		"src/Platform/Win32/Win32.h"
+	)
 	
 	# Set defines
 	target_compile_definitions(PaperPup PRIVATE PAPERPUP_PLATFORM_WIN32)
 	set(PAPERPUP_PLATFORM_WIN32 ON)
 	
 	# Use UTF-16 functionality where possible
-	target_compile_definitions(PaperPup PRIVATE UNICODE)
+	target_compile_definitions(PaperPup PRIVATE UNICODE _UNICODE)
 	
 	# Link Win32 libraries
-	target_link_libraries(${DIGITALSWIRL_TARGET} PRIVATE d3d11 dxgi)
+	target_link_libraries(PaperPup PRIVATE d3d11 dxgi)
 	
 	# Use our custom Win32 manifest
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
@@ -139,3 +156,11 @@ set_target_properties(PaperPup PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BUILD_DIRECTORY}
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIRECTORY}
 )
+
+########
+# Luau #
+########
+
+# Compile and link Luau
+add_subdirectory("lib/luau" EXCLUDE_FROM_ALL)
+target_link_libraries(PaperPup PRIVATE Luau.VM)

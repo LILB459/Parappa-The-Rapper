@@ -1,6 +1,6 @@
 /*
  * [PaperPup]
- *   PaperPup.cpp
+ *   Data.h
  * Author(s): Regan Green
  * Date: 07/26/2022
 
@@ -9,17 +9,3 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include "PaperPup.h"
-
-#include "Platform/Platform.h"
-
-#include <iostream>
-
-namespace PaperPup
-{
-	int Main(std::vector<std::string> args)
-	{
-		
-		return 0;
-	}
-}

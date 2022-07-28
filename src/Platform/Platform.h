@@ -1,6 +1,6 @@
 /*
  * [PaperPup]
- *   PaperPup.cpp
+ *   Platform.h
  * Author(s): Regan Green
  * Date: 07/26/2022
 
@@ -9,17 +9,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include "PaperPup.h"
+#pragma once
 
-#include "Platform/Platform.h"
-
-#include <iostream>
+#include <vector>
+#include <string>
 
 namespace PaperPup
 {
-	int Main(std::vector<std::string> args)
+	namespace Platform
 	{
-		
-		return 0;
+
 	}
+
+	// Application facing entry point
+	int Main(std::vector<std::string> args);
 }

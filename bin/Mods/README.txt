@@ -1,0 +1,1 @@
+The mods folder contains mods as folders, which act as patches onto the main data folder
