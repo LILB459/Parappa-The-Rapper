@@ -9,12 +9,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include "Platform/Platform.h"
 #include "Platform/Win32/Win32.h"
 
-#include "PaperPup.h"
-
-#include "Platform/Win32/Data.h"
+#include "Platform/Win32/Filesystem.h"
 
 #include <shellapi.h>
 
@@ -32,7 +29,7 @@ namespace PaperPup
 	Win32Impl::Win32Impl()
 	{
 		// Initialize systems
-		data = std::make_unique<Data::Win32Impl>();
+		filesystem = std::make_unique<Filesystem::Win32Impl>();
 	}
 
 	Win32Impl::~Win32Impl()

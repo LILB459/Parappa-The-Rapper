@@ -21,13 +21,17 @@ project(
 )
 
 add_executable(PaperPup WIN32
-	# = PaperPup =
+	# = Client =
 	"src/PaperPup.cpp"
 	"src/PaperPup.h"
 	"src/LuaController.cpp"
 	"src/LuaController.h"
 
-	# = PaperPup Libraries =
+	# = Libraries =
+
+	# = Platform =
+	"src/Platform/Platform.h"
+	"src/Platform/Filesystem.h"
 )
 
 target_include_directories(PaperPup PRIVATE "src")
@@ -104,8 +108,12 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 	# Compile sources
 	target_sources(PaperPup PRIVATE
 		# = Win32 =
+		"res/PaperPup.rc"
+		"res/PaperPup.manifest"
 		"src/Platform/Win32/Win32.cpp"
 		"src/Platform/Win32/Win32.h"
+		"src/Platform/Win32/Filesystem.cpp"
+		"src/Platform/Win32/Filesystem.h"
 	)
 	
 	# Set defines
@@ -119,21 +127,21 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 	target_link_libraries(PaperPup PRIVATE d3d11 dxgi)
 	
 	# Use our custom Win32 manifest
-	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
-	add_custom_command(
-		TARGET PaperPup
-		POST_BUILD
-		COMMAND "mt.exe"
-		ARGS -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\src\\Platform\\Win32\\Win32.manifest\" -outputresource:"$<TARGET_FILE:PaperPup>"\;\#1
-		COMMENT "[PaperPup] Applying Win32 manifest..."
-	)
+	#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
+	#add_custom_command(
+	#	TARGET PaperPup
+	#	POST_BUILD
+	#	COMMAND "mt.exe"
+	#	ARGS -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\src\\Platform\\Win32\\Win32.manifest\" -outputresource:"$<TARGET_FILE:PaperPup>"\;\#1
+	#	COMMENT "[PaperPup] Applying Win32 manifest..."
+	#)
 endif()
 
 ##########################
 # Further compiler setup #
 ##########################
 
-# Force strict C99 and C++11
+# Force strict C99 and C++17
 set_target_properties(PaperPup PROPERTIES
 	C_STANDARD 99
 	C_STANDARD_REQUIRED ON
@@ -163,4 +171,4 @@ set_target_properties(PaperPup PROPERTIES
 
 # Compile and link Luau
 add_subdirectory("lib/luau" EXCLUDE_FROM_ALL)
-target_link_libraries(PaperPup PRIVATE Luau.VM)
+target_link_libraries(PaperPup PRIVATE Luau.Compiler Luau.VM)

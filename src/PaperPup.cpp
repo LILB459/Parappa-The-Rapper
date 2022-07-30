@@ -11,14 +11,19 @@
 
 #include "PaperPup.h"
 
-#include "Platform/Platform.h"
-
 #include <iostream>
+#include <fstream>
 
 namespace PaperPup
 {
+	// Main image
+	std::unique_ptr<Filesystem::Image> g_image_main;
+
+	// Entry point
 	int Main(std::vector<std::string> args)
 	{
+		// Open main image
+		g_image_main = Filesystem::Image::Open("Image");
 		
 		return 0;
 	}

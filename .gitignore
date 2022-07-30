@@ -4,6 +4,7 @@ out/
 *.elf
 *.exe
 *.pdb
+*.ilk
 
 # Exclude mod files
 bin/Mods/*

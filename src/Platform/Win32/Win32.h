@@ -11,22 +11,25 @@
 
 #pragma once
 
+#include "Platform/Platform.h"
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <wrl/client.h>
 
 #include <memory>
+#include <string>
 
 namespace PaperPup
 {
 	// Win32 implementation
-	namespace Data { class Win32Impl; }
+	namespace Filesystem { class Win32Impl; }
 
 	class Win32Impl
 	{
 		public:
 			// Systems
-			std::unique_ptr<Data::Win32Impl> data;
+			std::unique_ptr<Filesystem::Win32Impl> filesystem;
 
 		public:
 			// Win32 interface
@@ -43,12 +46,12 @@ namespace PaperPup
 			// Calculate char count
 			int chars = WideCharToMultiByte(CP_UTF8, 0, string.data(), -1, nullptr, 0, nullptr, nullptr);
 			if (chars <= 0)
-				return "";
+				throw PaperPup::RuntimeError("Failed to get UTF-8 string length");
 
 			// Convert string
 			std::string result(chars, '\0');
 			if (WideCharToMultiByte(CP_UTF8, 0, string.data(), -1, &result[0], chars, nullptr, nullptr) <= 0)
-				return "";
+				throw PaperPup::RuntimeError("Failed to get UTF-8 string data");
 			
 			return result.substr(0, (std::string::size_type)chars - 1);
 		}
@@ -57,12 +60,12 @@ namespace PaperPup
 			// Calculate char count
 			int chars = MultiByteToWideChar(CP_UTF8, 0, string.data(), -1, nullptr, 0);
 			if (chars <= 0)
-				return L"";
+				throw PaperPup::RuntimeError("Failed to get UTF-16 string length");
 
 			// Convert string
 			std::wstring result(chars, '\0');
 			if (MultiByteToWideChar(CP_UTF8, 0, string.data(), -1, &result[0], chars) <= 0)
-				return L"";
+				throw PaperPup::RuntimeError("Failed to get UTF-16 string data");
 			
 			return result.substr(0, (std::string::size_type)chars - 1);
 		}

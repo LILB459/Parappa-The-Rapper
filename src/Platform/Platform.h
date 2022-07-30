@@ -13,14 +13,18 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
+#include <cassert>
 
 namespace PaperPup
 {
-	namespace Platform
-	{
-
-	}
-
 	// Application facing entry point
 	int Main(std::vector<std::string> args);
+
+	// Exception types
+	class RuntimeError : public std::runtime_error
+	{
+		public:
+			RuntimeError(std::string what_arg = "") : std::runtime_error(what_arg) {}
+	};
 }

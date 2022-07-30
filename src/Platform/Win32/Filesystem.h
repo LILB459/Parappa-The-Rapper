@@ -1,6 +1,6 @@
 /*
  * [PaperPup]
- *   PaperPup.h
+ *   Filesystem.h
  * Author(s): Regan Green
  * Date: 07/26/2022
 
@@ -11,11 +11,25 @@
 
 #pragma once
 
-#include "Platform/Platform.h"
 #include "Platform/Filesystem.h"
+
+#include "Platform/Win32/Win32.h"
 
 namespace PaperPup
 {
-	// Main image
-	extern std::unique_ptr<Filesystem::Image> g_image_main;
+	namespace Filesystem
+	{
+		// Win32 implementation
+		class Win32Impl
+		{
+			public:
+				// Module path
+				std::wstring module_path;
+
+			public:
+				// Filesystem interface
+				Win32Impl();
+				~Win32Impl();
+		};
+	}
 }

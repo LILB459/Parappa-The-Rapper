@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "PaperPup.h"
+#include "Platform/Platform.h"
 
 #include <lua.h>
 #include <lualib.h>
