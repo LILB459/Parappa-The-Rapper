@@ -7,8 +7,8 @@ out/
 *.ilk
 
 # Exclude mod files
-bin/Mods/*
-!bin/Mods/README.txt
+bin/Packs/*
+!bin/Packs/README.txt
 
 # Exclude data files
 data/

@@ -25,6 +25,7 @@ namespace PaperPup
 
 		// Image and file classes
 		class File;
+		class Archive;
 
 		class Image
 		{
@@ -33,21 +34,65 @@ namespace PaperPup
 				static std::unique_ptr<Image> Open(std::string name);
 				virtual ~Image() {}
 
+				virtual std::unique_ptr<Archive> OpenArchive(std::string name) = 0;
 				virtual std::unique_ptr<File> OpenFile(std::string name, bool mode2) = 0;
 		};
 
-		class File
+		class Archive
 		{
 			public:
+				// Archive interface
+				virtual ~Archive() {}
+
+				virtual std::unique_ptr<File> OpenFile(std::string name) = 0;
+		};
+
+
+		class File
+		{
+			private:
+				// Data
+				std::unique_ptr<char[]> data;
+				uint32_t cursor = 0, size;
+
+			public:
 				// File interface
-				virtual ~File() {}
+				File(char *_data, uint32_t _size) : data(_data), size(_size) {}
+				~File() {}
 
-				virtual uint32_t Size() const = 0;
+				uint32_t Size() const
+				{
+					return size;
+				}
 
-				virtual bool Seek(uint32_t pos) = 0;
-				virtual uint32_t Tell() const = 0;
+				bool Seek(uint32_t pos)
+				{
+					if (pos > size)
+						return false;
+					cursor = pos;
+					return true;
+				}
 
-				virtual uint32_t Read(char *buffer, uint32_t length) = 0;
+				uint32_t Tell() const
+				{
+					return cursor;
+				}
+
+				uint32_t Read(char *buffer, uint32_t length)
+				{
+					// Check if length is in bounds
+					if (length > size || cursor > (length - size))
+					{
+						if (cursor >= size)
+							return 0;
+						length = size - cursor;
+					}
+
+					// Copy to buffer
+					std::memcpy(buffer, data.get() + cursor, length);
+					cursor += length;
+					return length;
+				}
 		};
 	}
 }

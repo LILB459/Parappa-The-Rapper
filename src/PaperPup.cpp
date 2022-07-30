@@ -18,12 +18,14 @@ namespace PaperPup
 {
 	// Main image
 	std::unique_ptr<Filesystem::Image> g_image_main;
+	std::unique_ptr<Filesystem::Image> g_image_song;
 
 	// Entry point
 	int Main(std::vector<std::string> args)
 	{
 		// Open main image
-		g_image_main = Filesystem::Image::Open("Image");
+		if ((g_image_main = Filesystem::Image::Open("Image")) == nullptr)
+			throw PaperPup::RuntimeError("Failed to open main image");
 		
 		return 0;
 	}

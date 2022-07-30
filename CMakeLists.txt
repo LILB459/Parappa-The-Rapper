@@ -32,6 +32,7 @@ add_executable(PaperPup WIN32
 	# = Platform =
 	"src/Platform/Platform.h"
 	"src/Platform/Filesystem.h"
+	"src/Platform/Common/Binary.h"
 )
 
 target_include_directories(PaperPup PRIVATE "src")
