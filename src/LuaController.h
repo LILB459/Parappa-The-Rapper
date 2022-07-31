@@ -13,6 +13,8 @@
 
 #include "Platform/Platform.h"
 
+#include "Platform/Filesystem.h"
+
 #include <lua.h>
 #include <lualib.h>
 
@@ -149,6 +151,17 @@ namespace PaperPup
 			return nullptr;
 		}
 
+		// Lua access helper functions
+		static std::string GetString(lua_State *state, int index, const char *name)
+		{
+			lua_getfield(state, index, name);
+			if (!lua_isstring(state, -1))
+				throw PaperPup::RuntimeError("Field " + std::string(name) + " is not a string");
+			std::string result = lua_tostring(state, -1);
+			lua_pop(state, 1);
+			return result;
+		}
+
 		// Lua controller class
 		class LuaController
 		{
@@ -162,6 +175,21 @@ namespace PaperPup
 				~LuaController();
 
 				void Require(std::string name);
+				void RequireSource(std::string source, std::string name);
+				void RequireFile(std::unique_ptr<Filesystem::File> &file, std::string name)
+				{
+					if (file == nullptr)
+						throw PaperPup::RuntimeError("Failed to open source for module " + name);
+					RequireSource(std::string(file->Dup().get(), file->Size()), name);
+				}
+				void RequireImageFile(std::unique_ptr<Filesystem::Image> &image, std::string name)
+				{
+					std::unique_ptr<Filesystem::File> file = image->OpenFile(name, false);
+					if (file == nullptr)
+						throw PaperPup::RuntimeError("Failed to open source for module " + name);
+					RequireSource(std::string(file->Dup().get(), file->Size()), name);
+				}
+
 				void Register(const char *name, luaL_Reg *library, luaL_Reg *meta);
 		};
 	}

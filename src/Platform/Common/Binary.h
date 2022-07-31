@@ -24,6 +24,7 @@ namespace PaperPup
 		// Binary constants
 		static constexpr unsigned int SECTOR_MODE1 = 2048;
 		static constexpr unsigned int SECTOR_MODE2 = 2352;
+		static constexpr unsigned int SECTOR_MODE2_PARTIAL = 2336;
 
 		// Binary class
 		struct Binary_Directory

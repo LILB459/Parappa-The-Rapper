@@ -26,6 +26,8 @@ add_executable(PaperPup WIN32
 	"src/PaperPup.h"
 	"src/Engine.cpp"
 	"src/Engine.h"
+	"src/Pack.cpp"
+	"src/Pack.h"
 
 	# = Lua Controller =
 	"src/LuaController.cpp"
@@ -34,7 +36,9 @@ add_executable(PaperPup WIN32
 	# = Platform =
 	"src/Platform/Platform.h"
 	"src/Platform/Filesystem.h"
+	"src/Platform/Common/Mode2.h"
 	"src/Platform/Common/Binary.h"
+	"src/Platform/Common/IntArchive.h"
 )
 
 target_include_directories(PaperPup PRIVATE "src")

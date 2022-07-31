@@ -26,7 +26,7 @@ namespace PaperPup
 		// Int archive class
 		struct IntArchive_Directory
 		{
-			uint32_t offset, size;
+			size_t offset, size;
 		};
 
 		class IntArchive
@@ -76,12 +76,12 @@ namespace PaperPup
 							throw PaperPup::RuntimeError("Archive block directory too large");
 
 						char *dirp = block + 0x10;
-						uint32_t file_offset = 0;
+						size_t file_offset = 0;
 
 						for (uint32_t i = 0; i < block_files; i++)
 						{
 							// Read directory header
-							uint32_t dir_size = Read32(dirp + 0);
+							size_t dir_size = Read32(dirp + 0);
 
 							char dir_name[0x11];
 							std::memcpy(dir_name, dirp + 4, 0x10);

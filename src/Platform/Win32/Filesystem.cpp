@@ -11,6 +11,7 @@
 
 #include "Platform/Win32/Filesystem.h"
 
+#include "Platform/Common/Mode2.h"
 #include "Platform/Common/Binary.h"
 #include "Platform/Common/IntArchive.h"
 
@@ -47,6 +48,12 @@ namespace PaperPup
 			return L"\\\\?\\" + buffer.substr(0, path_end + 1);
 		}
 
+		static bool FileExists(std::wstring name)
+		{
+			DWORD attrib = GetFileAttributesW(name.c_str());
+			return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+		}
+
 		static bool DirectoryExists(std::wstring name)
 		{
 			DWORD attrib = GetFileAttributesW(name.c_str());
@@ -57,7 +64,7 @@ namespace PaperPup
 		{
 			WIN32_FIND_DATAW find_data;
 			HANDLE handle_find = FindFirstFileW(name.c_str(), &find_data);
-			if (handle_find != nullptr)
+			if (handle_find != INVALID_HANDLE_VALUE)
 			{
 				do
 				{
@@ -248,64 +255,10 @@ namespace PaperPup
 						if (read_result == FALSE || result != file_size)
 							return nullptr;
 
-						// Handle mode 2 edge cases
+						// Ensure mode 2 data is mode 2
+						size_t data_size = file_size;
 						if (mode2)
-						{
-							// Check file size
-							bool is2336 = (file_size % 2336) == 0;
-							bool is2352 = (file_size % SECTOR_MODE2) == 0;
-							if (!(is2336 || is2352))
-								throw PaperPup::RuntimeError("Bad mode 2 file open: " + name);
-
-							// Check if mode 2
-							bool is_mode2;
-							if (is2352)
-							{
-								if (is2336)
-								{
-									// Sync bytes determine a mode 2 file
-									static const unsigned char sync_bytes[12] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
-									assert(file_size >= 12);
-									if (std::memcmp(sync_bytes, data, 12))
-										is_mode2 = false;
-									else
-										is_mode2 = true;
-								}
-								else
-								{
-									// Size can only be a mode 2 file
-									is_mode2 = true;
-								}
-							}
-							else
-							{
-								// Size can not be a mode 2 file
-								is_mode2 = false;
-							}
-
-							if (!is_mode2)
-							{
-								// Insert mode 2 header
-								char *datap = data;
-
-								DWORD sectors = file_size / 2336;
-								char *mode2_data = new char[sectors * SECTOR_MODE2];
-								char *mode2_datap = mode2_data;
-
-								for (DWORD i = 0; i < sectors; i++)
-								{
-									static const unsigned char mode2_head[16] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x02 }; // Sync bytes, address, then mode (2)
-									std::memcpy(mode2_datap, mode2_head, 16);
-									std::memcpy(mode2_datap + 0x10, datap, 2336);
-									datap += 2336;
-									mode2_datap += SECTOR_MODE2;
-								}
-
-								// Return new mode 2 file
-								delete[] data;
-								return std::make_unique<File>(mode2_data, file_size);
-							}
-						}
+							InsureMode2(&data, &data_size);
 
 						// Return file
 						return std::make_unique<File>(data, file_size);
@@ -329,6 +282,33 @@ namespace PaperPup
 			// Open image
 			std::unique_ptr<Image_Win32Impl> image = std::make_unique<Image_Win32Impl>(name);
 			return image;
+		}
+
+		// Filesystem functions
+		std::vector<std::string> GetPackList()
+		{
+			// Get packs folder
+			std::wstring path_packs = g_win32_impl->filesystem->module_path + L"Packs";
+			if (!DirectoryExists(path_packs))
+				throw PaperPup::RuntimeError("Packs folder doesn't exist");
+
+			// Iterate packs folder
+			std::vector<std::string> packs;
+			DirectoryIterate(path_packs + L"\\*", [&](WIN32_FIND_DATAW &file_data)
+			{
+				// Check if file is a directory
+				if ((file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(file_data.dwFileAttributes & FILE_ATTRIBUTE_PINNED))
+				{
+					// Check if folder is individual
+					std::wstring pack_name = std::wstring(file_data.cFileName);
+					if (pack_name == L"." || pack_name == L"..")
+						return;
+
+					// Add to list
+					packs.push_back(Win32::WideToUTF8(pack_name));
+				}
+			});
+			return packs;
 		}
 	}
 }

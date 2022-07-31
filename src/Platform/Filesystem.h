@@ -54,19 +54,19 @@ namespace PaperPup
 			private:
 				// Data
 				std::unique_ptr<char[]> data;
-				uint32_t cursor = 0, size;
+				size_t cursor = 0, size;
 
 			public:
 				// File interface
-				File(char *_data, uint32_t _size) : data(_data), size(_size) {}
+				File(char *_data, size_t _size) : data(_data), size(_size) {}
 				~File() {}
 
-				uint32_t Size() const
+				size_t Size() const
 				{
 					return size;
 				}
 
-				bool Seek(uint32_t pos)
+				bool Seek(size_t pos)
 				{
 					if (pos > size)
 						return false;
@@ -74,12 +74,12 @@ namespace PaperPup
 					return true;
 				}
 
-				uint32_t Tell() const
+				size_t Tell() const
 				{
 					return cursor;
 				}
 
-				uint32_t Read(char *buffer, uint32_t length)
+				size_t Read(char *buffer, size_t length)
 				{
 					// Check if length is in bounds
 					if (length > size || cursor > (size - length))
@@ -94,6 +94,17 @@ namespace PaperPup
 					cursor += length;
 					return length;
 				}
+
+				std::unique_ptr<char[]> Dup() const
+				{
+					// Create new buffer with file contents
+					std::unique_ptr<char[]> dup = std::make_unique<char[]>(size);
+					std::memcpy(dup.get(), data.get(), size);
+					return dup;
+				}
 		};
+
+		// Filesystem functions
+		std::vector<std::string> GetPackList();
 	}
 }

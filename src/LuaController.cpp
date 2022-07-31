@@ -11,7 +11,9 @@
 
 #include "LuaController.h"
 
-#include "Platform/Filesystem.h"
+#include "Engine.h"
+
+#include <Luau/Compiler.h>
 
 // Lua libraries
 
@@ -20,48 +22,19 @@ namespace PaperPup
 	namespace Lua
 	{
 		// Lua functions
-		static int Lua_Require(lua_State *state, std::string name)
+		static int Lua_RequireCompile(lua_State *state, std::string source, std::string name)
 		{
-			/*
-			// This function is called from C++ as well, so we should leave the stack clean
-			
-			// Look for module in cache
-			luaL_findtable(state, LUA_REGISTRYINDEX, "_MODULES", 1);
-			lua_getfield(state, -1, name.c_str());
-			if (!lua_isnil(state, -1))
-			{
-				// Return the found module
-				lua_remove(state, -2);
-				return 1;
-			}
-			lua_pop(state, 1);
-
-			// Load bytecode for module
-			std::unique_ptr<char[]> bytecode;
-			size_t bytecode_size;
-			{
-				// Open bytecode data stream
-				std::unique_ptr<PaperPup::Data::DataStream> bytecode_stream = PaperPup::Data::DataStream::Open("Bytecode/" + name);
-				if (bytecode_stream == nullptr)
-					throw PaperPup::RuntimeError("Failed to find bytecode for module " + name);
-
-				// Allocate and fill bytecode array
-				bytecode_size = bytecode_stream->Size();
-				bytecode = std::make_unique<char[]>(bytecode_size);
-				if (bytecode_stream->Read(bytecode.get(), bytecode_size) != bytecode_size)
-					throw PaperPup::RuntimeError("Failed to read bytecode for module " + name);
-			}
-
 			// Create new thread for module
 			lua_State *main_thread = lua_mainthread(state);
 			lua_State *module_thread = lua_newthread(main_thread);
 			lua_xmove(main_thread, state, 1);
-			
+
 			luaL_sandboxthread(module_thread);
 
-			// Load and execute bytecode
+			// Compile and execute bytecode
 			std::string chunkname = "=" + name;
-			if (luau_load(module_thread, chunkname.c_str(), bytecode.get(), bytecode_size, 0) == 0)
+			std::string bytecode = Luau::compile(source, Luau::CompileOptions{});
+			if (luau_load(module_thread, chunkname.c_str(), bytecode.data(), bytecode.size(), 0) == 0)
 			{
 				int status = lua_resume(module_thread, state, 0);
 				if (status == 0)
@@ -90,10 +63,61 @@ namespace PaperPup
 			lua_pushvalue(state, -1);
 			lua_setfield(state, -3, name.c_str());
 			lua_remove(state, -2);
-			*/
-		
+
 			// Return the loaded module
 			return 1;
+		}
+
+		static int Lua_RequireSource(lua_State *state, std::string source, std::string name)
+		{
+			// This function is called from C++ as well, so we should leave the stack clean
+
+			// Look for module in cache
+			luaL_findtable(state, LUA_REGISTRYINDEX, "_MODULES", 1);
+			lua_getfield(state, -1, name.c_str());
+			if (!lua_isnil(state, -1))
+			{
+				// Return the found module
+				lua_remove(state, -2);
+				return 1;
+			}
+			lua_pop(state, 1);
+
+			// Compile source
+			return Lua_RequireCompile(state, source, name);
+		}
+
+		static int Lua_Require(lua_State *state, std::string name)
+		{
+			// This function is called from C++ as well, so we should leave the stack clean
+			
+			// Look for module in cache
+			luaL_findtable(state, LUA_REGISTRYINDEX, "_MODULES", 1);
+			lua_getfield(state, -1, name.c_str());
+			if (!lua_isnil(state, -1))
+			{
+				// Return the found module
+				lua_remove(state, -2);
+				return 1;
+			}
+			lua_pop(state, 1);
+
+			// Load source for module
+			std::unique_ptr<char[]> source;
+			size_t source_size;
+			{
+				// Open source file
+				std::unique_ptr<Filesystem::File> source_file = g_engine->OpenFile(name, false);
+				if (source_file == nullptr)
+					throw PaperPup::RuntimeError("Failed to open source for module " + name);
+
+				// Read source file
+				source = source_file->Dup();
+				source_size = source_file->Size();
+			}
+
+			// Compile source
+			return Lua_RequireCompile(state, std::string(source.get(), source_size), name);
 		}
 
 		// Lua controller interface
@@ -136,6 +160,13 @@ namespace PaperPup
 		{
 			// Require module
 			Lua_Require(global_state, name);
+			// Our stack contains the module
+		}
+
+		void LuaController::RequireSource(std::string source, std::string name)
+		{
+			// Require module
+			Lua_RequireSource(global_state, source, name);
 			// Our stack contains the module
 		}
 
