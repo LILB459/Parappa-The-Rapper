@@ -25,10 +25,17 @@ namespace PaperPup
 
 			// Start engine
 			g_engine->Start();
+
+			// Delete engine
+			if (g_engine != nullptr)
+			{
+				delete g_engine;
+				g_engine = nullptr;
+			}
 		}
 		catch (std::exception & exception)
 		{
-			// Pass exception to exception handler
+			// Delete engine and pass exception to exception handler
 			if (g_engine != nullptr)
 			{
 				delete g_engine;
