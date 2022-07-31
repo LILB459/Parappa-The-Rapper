@@ -26,6 +26,11 @@ namespace PaperPup
 		// Open main image
 		if ((g_image_main = Filesystem::Image::Open("Image")) == nullptr)
 			throw PaperPup::RuntimeError("Failed to open main image");
+
+		// Open an archive
+		std::unique_ptr<Filesystem::Archive> test_archive = g_image_main->OpenArchive("S1/COMPO01");
+		if (test_archive == nullptr)
+			throw PaperPup::RuntimeError("Failed to open S1/COMPO01.INT");
 		
 		return 0;
 	}

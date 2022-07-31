@@ -7,6 +7,7 @@ out/
 *.ilk
 
 # Exclude mod files
+bin/Image.bin
 bin/Packs/*
 !bin/Packs/README.txt
 

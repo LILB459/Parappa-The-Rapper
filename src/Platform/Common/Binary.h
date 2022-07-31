@@ -21,6 +21,10 @@ namespace PaperPup
 {
 	namespace Filesystem
 	{
+		// Binary constants
+		static constexpr unsigned int SECTOR_MODE1 = 2048;
+		static constexpr unsigned int SECTOR_MODE2 = 2352;
+
 		// Binary class
 		struct Binary_Directory
 		{
@@ -37,9 +41,6 @@ namespace PaperPup
 			public:
 				// Binary interface
 				virtual ~Binary() {}
-				
-				static uint16_t Read16(char *data) { return (((uint16_t)((uint8_t)data[0])) << 0) | (((uint16_t)((uint8_t)data[1])) << 8); }
-				static uint32_t Read32(char *data) { return (((uint32_t)((uint8_t)data[0])) << 0) | (((uint32_t)((uint8_t)data[1])) << 8) | (((uint32_t)((uint8_t)data[2])) << 16) | (((uint32_t)((uint8_t)data[3])) << 24); }
 
 				std::unique_ptr<File> OpenFile(std::string name, bool mode2)
 				{
@@ -73,6 +74,7 @@ namespace PaperPup
 							char sector[SECTOR_MODE2];
 							ReadSector(sector, 1);
 							std::memcpy(datap, sector + 0x018, SECTOR_MODE1);
+							datap += SECTOR_MODE1;
 						}
 
 						return std::make_unique<File>(data, dir->second.size);

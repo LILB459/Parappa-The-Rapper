@@ -19,13 +19,13 @@ namespace PaperPup
 {
 	namespace Filesystem
 	{
-		// Filesystem constants
-		static constexpr unsigned int SECTOR_MODE1 = 2048;
-		static constexpr unsigned int SECTOR_MODE2 = 2352;
+		// Image helpers
+		static uint16_t Read16(char *data) { return (((uint16_t)((uint8_t)data[0])) << 0) | (((uint16_t)((uint8_t)data[1])) << 8); }
+		static uint32_t Read32(char *data) { return (((uint32_t)((uint8_t)data[0])) << 0) | (((uint32_t)((uint8_t)data[1])) << 8) | (((uint32_t)((uint8_t)data[2])) << 16) | (((uint32_t)((uint8_t)data[3])) << 24); }
 
-		// Image and file classes
-		class File;
+		// Image class
 		class Archive;
+		class File;
 
 		class Image
 		{
@@ -38,6 +38,7 @@ namespace PaperPup
 				virtual std::unique_ptr<File> OpenFile(std::string name, bool mode2) = 0;
 		};
 
+		// Archive class
 		class Archive
 		{
 			public:
@@ -46,8 +47,8 @@ namespace PaperPup
 
 				virtual std::unique_ptr<File> OpenFile(std::string name) = 0;
 		};
-
-
+		
+		// File class
 		class File
 		{
 			private:
@@ -81,7 +82,7 @@ namespace PaperPup
 				uint32_t Read(char *buffer, uint32_t length)
 				{
 					// Check if length is in bounds
-					if (length > size || cursor > (length - size))
+					if (length > size || cursor > (size - length))
 					{
 						if (cursor >= size)
 							return 0;

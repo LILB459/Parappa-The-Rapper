@@ -12,6 +12,7 @@
 #include "Platform/Win32/Filesystem.h"
 
 #include "Platform/Common/Binary.h"
+#include "Platform/Common/IntArchive.h"
 
 #include <algorithm>
 #include <functional>
@@ -20,7 +21,7 @@ namespace PaperPup
 {
 	namespace Filesystem
 	{
-		// Return directory to module as wide string
+		// Win32 filesystem helpers
 		static std::wstring GetModulePath()
 		{
 			// Fill wide string buffer with path to executable
@@ -128,13 +129,73 @@ namespace PaperPup
 				}
 		};
 
+		class Archive_Win32Impl : public Archive
+		{
+			private:
+				// Archive path and file
+				std::wstring path_archive;
+				std::unique_ptr<IntArchive> archive;
+				
+			public:
+				// Archive interface
+				Archive_Win32Impl(Image *image, std::string name)
+				{
+					// Get path
+					path_archive = g_win32_impl->filesystem->module_path + Win32::UTF8ToWide(name) + L"\\";
+
+					// Open archive file
+					std::unique_ptr<File> file_archive = image->OpenFile(name + ".INT", false);
+					if (file_archive != nullptr)
+						archive = std::make_unique<IntArchive>(file_archive);
+				}
+
+				~Archive_Win32Impl() override
+				{
+
+				}
+
+				std::unique_ptr<File> OpenFile(std::string name) override
+				{
+					// Try to open from folder
+					std::wstring path_file = path_archive + Win32::UTF8ToWide(name);
+					std::replace(path_file.begin(), path_file.end(), '/', '\\');
+
+					HANDLE handle_file = CreateFileW(path_file.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+					if (handle_file != INVALID_HANDLE_VALUE)
+					{
+						// Allocate file buffer
+						DWORD file_size = GetFileSize(handle_file, nullptr);
+						char *data = new char[file_size];
+
+						// Read file contents
+						DWORD result;
+						BOOL read_result = ReadFile(handle_file, data, file_size, &result, nullptr);
+						CloseHandle(handle_file);
+
+						// Return file
+						if (read_result == FALSE || result != file_size)
+							return nullptr;
+						else
+							return std::make_unique<File>(data, file_size);
+					}
+
+					// Try to open from archive
+					if (archive != nullptr)
+					{
+						std::unique_ptr<File> file;
+						if ((file = archive->OpenFile(name)) != nullptr)
+							return file;
+					}
+
+					return nullptr;
+				}
+		};
+
 		class Image_Win32Impl : public Image
 		{
 			public:
-				// Folder path
+				// Image path and binary
 				std::wstring path_image;
-
-				// Image binary
 				std::unique_ptr<Binary_Win32Impl> binary;
 
 			public:
@@ -159,7 +220,9 @@ namespace PaperPup
 
 				std::unique_ptr<Archive> OpenArchive(std::string name)
 				{
-					return nullptr;
+					// Open archive
+					std::unique_ptr<Archive_Win32Impl> archive = std::make_unique<Archive_Win32Impl>(this, name);
+					return archive;
 				}
 
 				std::unique_ptr<File> OpenFile(std::string name, bool mode2) override
@@ -202,10 +265,8 @@ namespace PaperPup
 
 		std::unique_ptr<Image> Image::Open(std::string name)
 		{
-			// Create image
+			// Open image
 			std::unique_ptr<Image_Win32Impl> image = std::make_unique<Image_Win32Impl>(name);
-			if (image->binary == nullptr && !DirectoryExists(image->path_image))
-				return nullptr;
 			return image;
 		}
 	}
