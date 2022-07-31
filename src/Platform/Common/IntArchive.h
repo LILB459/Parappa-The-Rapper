@@ -120,8 +120,7 @@ namespace PaperPup
 
 					// Read file data
 					char *data = new char[dir->second.size];
-					file->Seek(dir->second.offset);
-					if (file->Read(data, dir->second.size) != dir->second.size)
+					if (file->Seek(dir->second.offset) == false || file->Read(data, dir->second.size) != dir->second.size)
 						throw PaperPup::RuntimeError("Archive failed to read file data");
 
 					return std::make_unique<File>(data, dir->second.size);
