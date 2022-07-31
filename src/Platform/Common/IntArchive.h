@@ -118,9 +118,6 @@ namespace PaperPup
 					if (dir == directory.end())
 						return nullptr;
 
-					std::string as = std::to_string(dir->second.offset) + ":" + std::to_string(dir->second.size);
-					MessageBoxA(nullptr, as.c_str(), as.c_str(), 0);
-
 					// Read file data
 					char *data = new char[dir->second.size];
 					file->Seek(dir->second.offset);
