@@ -24,10 +24,12 @@ add_executable(PaperPup WIN32
 	# = Client =
 	"src/PaperPup.cpp"
 	"src/PaperPup.h"
+	"src/Engine.cpp"
+	"src/Engine.h"
+
+	# = Lua Controller =
 	"src/LuaController.cpp"
 	"src/LuaController.h"
-
-	# = Libraries =
 
 	# = Platform =
 	"src/Platform/Platform.h"

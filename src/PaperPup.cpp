@@ -11,26 +11,31 @@
 
 #include "PaperPup.h"
 
-#include <iostream>
-#include <fstream>
+#include "Engine.h"
 
 namespace PaperPup
 {
-	// Main image
-	std::unique_ptr<Filesystem::Image> g_image_main;
-	std::unique_ptr<Filesystem::Image> g_image_song;
-
 	// Entry point
 	int Main(std::vector<std::string> args)
 	{
-		// Open main image
-		if ((g_image_main = Filesystem::Image::Open("Image")) == nullptr)
-			throw PaperPup::RuntimeError("Failed to open main image");
+		try
+		{
+			// Create engine
+			g_engine = new Engine();
 
-		// Open an archive
-		std::unique_ptr<Filesystem::Archive> test_archive = g_image_main->OpenArchive("S1/COMPO01");
-		if (test_archive == nullptr)
-			throw PaperPup::RuntimeError("Failed to open S1/COMPO01.INT");
+			// Start engine
+			g_engine->Start();
+		}
+		catch (std::exception & exception)
+		{
+			// Pass exception to exception handler
+			if (g_engine != nullptr)
+			{
+				delete g_engine;
+				g_engine = nullptr;
+			}
+			throw PaperPup::RuntimeError(exception.what());
+		}
 		
 		return 0;
 	}

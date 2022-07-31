@@ -236,6 +236,8 @@ namespace PaperPup
 					{
 						// Allocate file buffer
 						DWORD file_size = GetFileSize(handle_file, nullptr);
+						if (file_size <= 0)
+							return nullptr;
 						char *data = new char[file_size];
 
 						// Read file contents
@@ -243,11 +245,70 @@ namespace PaperPup
 						BOOL read_result = ReadFile(handle_file, data, file_size, &result, nullptr);
 						CloseHandle(handle_file);
 
-						// Return file
 						if (read_result == FALSE || result != file_size)
 							return nullptr;
-						else
-							return std::make_unique<File>(data, file_size);
+
+						// Handle mode 2 edge cases
+						if (mode2)
+						{
+							// Check file size
+							bool is2336 = (file_size % 2336) == 0;
+							bool is2352 = (file_size % SECTOR_MODE2) == 0;
+							if (!(is2336 || is2352))
+								throw PaperPup::RuntimeError("Bad mode 2 file open: " + name);
+
+							// Check if mode 2
+							bool is_mode2;
+							if (is2352)
+							{
+								if (is2336)
+								{
+									// Sync bytes determine a mode 2 file
+									static const unsigned char sync_bytes[12] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
+									assert(file_size >= 12);
+									if (std::memcmp(sync_bytes, data, 12))
+										is_mode2 = false;
+									else
+										is_mode2 = true;
+								}
+								else
+								{
+									// Size can only be a mode 2 file
+									is_mode2 = true;
+								}
+							}
+							else
+							{
+								// Size can not be a mode 2 file
+								is_mode2 = false;
+							}
+
+							if (!is_mode2)
+							{
+								// Insert mode 2 header
+								char *datap = data;
+
+								DWORD sectors = file_size / 2336;
+								char *mode2_data = new char[sectors * SECTOR_MODE2];
+								char *mode2_datap = mode2_data;
+
+								for (DWORD i = 0; i < sectors; i++)
+								{
+									static const unsigned char mode2_head[16] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x02 }; // Sync bytes, address, then mode (2)
+									std::memcpy(mode2_datap, mode2_head, 16);
+									std::memcpy(mode2_datap + 0x10, datap, 2336);
+									datap += 2336;
+									mode2_datap += SECTOR_MODE2;
+								}
+
+								// Return new mode 2 file
+								delete[] data;
+								return std::make_unique<File>(mode2_data, file_size);
+							}
+						}
+
+						// Return file
+						return std::make_unique<File>(data, file_size);
 					}
 
 					// Try to open file binary

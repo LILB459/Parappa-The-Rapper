@@ -12,10 +12,8 @@
 #pragma once
 
 #include "Platform/Platform.h"
-#include "Platform/Filesystem.h"
 
 namespace PaperPup
 {
-	// Main image
-	extern std::unique_ptr<Filesystem::Image> g_image_main;
+	
 }
