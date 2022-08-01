@@ -28,6 +28,10 @@ add_executable(PaperPup WIN32
 	"src/Engine.h"
 	"src/Pack.cpp"
 	"src/Pack.h"
+	
+	# = Menu =
+	"src/Menu/Menu.cpp"
+	"src/Menu/Menu.h"
 
 	# = Lua Controller =
 	"src/LuaController.cpp"

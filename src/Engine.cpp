@@ -11,9 +11,7 @@
 
 #include "Engine.h"
 
-#include "Pack.h"
-
-#include <Windows.h>
+#include "Menu/Menu.h"
 
 namespace PaperPup
 {
@@ -27,27 +25,20 @@ namespace PaperPup
 		image_main = Filesystem::Image::Open("Image");
 		if (image_main == nullptr)
 			throw PaperPup::RuntimeError("Failed to open main image");
-		
-		// Read packs
-		std::vector<std::string> packs = Filesystem::GetPackList();
-		for (auto &i : packs)
-		{
-			Pack pack(i);
-			MessageBoxA(nullptr, (pack.pack_name + "\n" + pack.pack_description + "\n" + pack.pack_version).c_str(), i.c_str(), 0);
-			for (auto &j : pack.pack_songs)
-			{
-				MessageBoxA(nullptr, (j.song_name + "\n" + j.song_description).c_str(), i.c_str(), 0);
-			}
-		}
 	}
 
 	Engine::~Engine()
 	{
-
+		
 	}
 
 	void Engine::Start()
 	{
-		
+		// Start menu state
+		state = std::make_unique<Menu::Menu>();
+
+		// Engine loop
+		while (state != nullptr)
+			state = state->Start();
 	}
 }

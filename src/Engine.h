@@ -15,19 +15,31 @@
 
 #include "Platform/Filesystem.h"
 
-#include "Pack.h"
-
 #include <memory>
 
 namespace PaperPup
 {
 	// Engine class
+	class State
+	{
+		public:
+			// State interface
+			virtual ~State() {}
+
+			virtual std::unique_ptr<State> Start() = 0;
+
+			virtual std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name) = 0;
+			virtual std::unique_ptr<Filesystem::File> OpenFile(std::string name, bool mode2) = 0;
+	};
+
 	class Engine
 	{
 		private:
-			// Images
+			// Main image
 			std::unique_ptr<Filesystem::Image> image_main;
-			std::unique_ptr<Pack> pack;
+
+			// Engine state
+			std::unique_ptr<State> state;
 
 		public:
 			// Engine interface
@@ -39,6 +51,11 @@ namespace PaperPup
 			std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name)
 			{
 				std::unique_ptr<Filesystem::Archive> archive;
+				if (state != nullptr)
+				{
+					if ((archive = state->OpenArchive(name)) != nullptr)
+						return archive;
+				}
 				if (image_main != nullptr)
 				{
 					if ((archive = image_main->OpenArchive(name)) != nullptr)
@@ -50,6 +67,11 @@ namespace PaperPup
 			std::unique_ptr<Filesystem::File> OpenFile(std::string name, bool mode2)
 			{
 				std::unique_ptr<Filesystem::File> file;
+				if (state != nullptr)
+				{
+					if ((file = state->OpenFile(name, mode2)) != nullptr)
+						return file;
+				}
 				if (image_main != nullptr)
 				{
 					if ((file = image_main->OpenFile(name, mode2)) != nullptr)
