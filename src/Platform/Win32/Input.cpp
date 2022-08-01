@@ -1,0 +1,59 @@
+/*
+ * [PaperPup]
+ *   Input.cpp
+ * Author(s): Regan Green
+ * Date: 08/01/2022
+
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+#include "Platform/Win32/Input.h"
+
+namespace PaperPup
+{
+	namespace Input
+	{
+		// Win32 implementation
+		Win32Impl::Win32Impl()
+		{
+
+		}
+
+		Win32Impl::~Win32Impl()
+		{
+
+		}
+
+		LRESULT Win32Impl::WindowProc(HWND parent, UINT message, WPARAM wparam, LPARAM lparam)
+		{
+			// Handle message
+			switch (message)
+			{
+				case WM_DESTROY:
+				case WM_CLOSE:
+					PostQuitMessage(0);
+					return 0;
+			}
+
+			// Handle default process
+			return DefWindowProc(parent, message, wparam, lparam);
+		}
+
+		// Input interface
+		bool HandleEvents()
+		{
+			// Process window messages
+			MSG window_msg = {};
+			while (PeekMessageW(&window_msg, nullptr, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&window_msg);
+				DispatchMessageA(&window_msg);
+				if (window_msg.message == WM_QUIT)
+					return true;
+			}
+			return false;
+		}
+	}
+}

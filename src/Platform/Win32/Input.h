@@ -1,8 +1,8 @@
 /*
  * [PaperPup]
- *   Filesystem.h
+ *   Input.h
  * Author(s): Regan Green
- * Date: 07/26/2022
+ * Date: 08/01/2022
 
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,25 +11,26 @@
 
 #pragma once
 
-#include "Platform/Filesystem.h"
+#include "Platform/Input.h"
 
 #include "Platform/Win32/Win32.h"
 
 namespace PaperPup
 {
-	namespace Filesystem
+	namespace Input
 	{
 		// Win32 implementation
 		class Win32Impl
 		{
 			public:
-				// Module path
-				std::wstring module_path;
+			
 
 			public:
 				// Win32 implementation interface
 				Win32Impl();
 				~Win32Impl();
+
+				static LRESULT WindowProc(HWND parent, UINT message, WPARAM wparam, LPARAM lparam);
 		};
 	}
 }

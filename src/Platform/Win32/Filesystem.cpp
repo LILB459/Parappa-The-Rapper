@@ -74,7 +74,7 @@ namespace PaperPup
 			}
 		}
 
-		// Filesystem interface
+		// Win32 implementation interface
 		Win32Impl::Win32Impl()
 		{
 			// Get module path

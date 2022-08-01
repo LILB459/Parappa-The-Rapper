@@ -13,6 +13,9 @@
 
 #include "Menu/Menu.h"
 
+#include "Platform/Render.h"
+#include "Platform/Input.h"
+
 namespace PaperPup
 {
 	// Engine global
@@ -25,11 +28,28 @@ namespace PaperPup
 		image_main = Filesystem::Image::Open("Image");
 		if (image_main == nullptr)
 			throw PaperPup::RuntimeError("Failed to open main image");
+
+		// Set display mode
+		Render::SetWindow(1920, 1080);
 	}
 
 	Engine::~Engine()
 	{
 		
+	}
+
+	bool Engine::StartFrame()
+	{
+		// Handle input events
+		if (Input::HandleEvents())
+			return true;
+
+		return false;
+	}
+
+	void Engine::EndFrame()
+	{
+		// Present renderer
 	}
 
 	void Engine::Start()

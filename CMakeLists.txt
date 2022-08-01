@@ -40,6 +40,10 @@ add_executable(PaperPup WIN32
 	# = Platform =
 	"src/Platform/Platform.h"
 	"src/Platform/Filesystem.h"
+	"src/Platform/Render.h"
+	"src/Platform/Input.h"
+
+	# = Platform Common =
 	"src/Platform/Common/Mode2.h"
 	"src/Platform/Common/Binary.h"
 	"src/Platform/Common/IntArchive.h"
@@ -118,13 +122,19 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 
 	# Compile sources
 	target_sources(PaperPup PRIVATE
-		# = Win32 =
-		"res/PaperPup.rc"
-		"res/PaperPup.manifest"
+		# = Win32 Platform =
 		"src/Platform/Win32/Win32.cpp"
 		"src/Platform/Win32/Win32.h"
 		"src/Platform/Win32/Filesystem.cpp"
 		"src/Platform/Win32/Filesystem.h"
+		"src/Platform/Win32/Render.cpp"
+		"src/Platform/Win32/Render.h"
+		"src/Platform/Win32/Input.cpp"
+		"src/Platform/Win32/Input.h"
+
+		# = Win32 Resources =
+		"res/PaperPup.rc"
+		"res/PaperPup.manifest"
 	)
 	
 	# Set defines
@@ -136,16 +146,6 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 	
 	# Link Win32 libraries
 	target_link_libraries(PaperPup PRIVATE d3d11 dxgi)
-	
-	# Use our custom Win32 manifest
-	#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
-	#add_custom_command(
-	#	TARGET PaperPup
-	#	POST_BUILD
-	#	COMMAND "mt.exe"
-	#	ARGS -manifest \"${CMAKE_CURRENT_SOURCE_DIR}\\src\\Platform\\Win32\\Win32.manifest\" -outputresource:"$<TARGET_FILE:PaperPup>"\;\#1
-	#	COMMENT "[PaperPup] Applying Win32 manifest..."
-	#)
 endif()
 
 ##########################

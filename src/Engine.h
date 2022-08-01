@@ -48,6 +48,9 @@ namespace PaperPup
 
 			void Start();
 
+			bool StartFrame();
+			void EndFrame();
+
 			std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name)
 			{
 				std::unique_ptr<Filesystem::Archive> archive;

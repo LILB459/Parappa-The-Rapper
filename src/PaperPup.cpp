@@ -28,6 +28,7 @@ namespace PaperPup
 
 			// Delete engine
 			delete g_engine;
+			g_engine = nullptr;
 		}
 		catch (std::exception & exception)
 		{

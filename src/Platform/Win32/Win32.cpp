@@ -12,6 +12,8 @@
 #include "Platform/Win32/Win32.h"
 
 #include "Platform/Win32/Filesystem.h"
+#include "Platform/Win32/Render.h"
+#include "Platform/Win32/Input.h"
 
 #include <shellapi.h>
 
@@ -30,6 +32,8 @@ namespace PaperPup
 	{
 		// Initialize systems
 		filesystem = std::make_unique<Filesystem::Win32Impl>();
+		render = std::make_unique<Render::Win32Impl>();
+		input = std::make_unique<Input::Win32Impl>();
 	}
 
 	Win32Impl::~Win32Impl()
@@ -42,9 +46,9 @@ namespace PaperPup
 	{
 		// Show error message box
 		HWND window = nullptr;
-		//if (g_win32_impl != nullptr)
-		//	if (g_win32_impl->render != nullptr)
-		//		window = g_win32_impl->render->window;
+		if (g_win32_impl != nullptr)
+			if (g_win32_impl->render != nullptr)
+				window = g_win32_impl->render->window;
 		MessageBoxW(window, (L"PaperPup Runtime Error:\n" + Win32::UTF8ToWide(_error)).c_str(), L"PaperPup", MB_ICONERROR);
 	}
 }
@@ -80,8 +84,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		result = PaperPup::Main(args);
 
 		// Delete PaperPup implementation
-		if (PaperPup::g_win32_impl != nullptr)
-			delete PaperPup::g_win32_impl;
+		delete PaperPup::g_win32_impl;
+		PaperPup::g_win32_impl = nullptr;
 	}
 	catch (PaperPup::RuntimeError &exception)
 	{
@@ -90,13 +94,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		// Delete PaperPup implementation
 		if (PaperPup::g_win32_impl != nullptr)
+		{
 			delete PaperPup::g_win32_impl;
+			PaperPup::g_win32_impl = nullptr;
+		}
 	}
 
 	// Uninitialize COM
 	CoUninitialize();
 
-	// Quit program
-	PostQuitMessage(result);
 	return 0;
 }

@@ -1,6 +1,6 @@
 /*
  * [PaperPup]
- *   Menu.cpp
+ *   Input.h
  * Author(s): Regan Green
  * Date: 08/01/2022
 
@@ -9,32 +9,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#include "Menu/Menu.h"
+#pragma once
+
+#include "Platform/Platform.h"
 
 namespace PaperPup
 {
-	namespace Menu
+	namespace Input
 	{
-		// Menu class interface
-		Menu::Menu()
-		{
-
-		}
-
-		Menu::~Menu()
-		{
-
-		}
-
-		std::unique_ptr<State> Menu::Start()
-		{
-			while (!g_engine->StartFrame())
-			{
-				// End frame
-				g_engine->EndFrame();
-			}
-
-			return nullptr;
-		}
+		// Input interface
+		bool HandleEvents();
 	}
 }
