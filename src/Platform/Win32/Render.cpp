@@ -192,8 +192,8 @@ namespace PaperPup
 		void Win32Impl::SetWindow(unsigned int width, unsigned int height)
 		{
 			// Get containing output
-			IDXGIOutput *dxgi_output;
-			if (FAILED(swap_chain->GetContainingOutput(&dxgi_output)))
+			ComPtr<IDXGIOutput> dxgi_output;
+			if (FAILED(swap_chain->GetContainingOutput(dxgi_output.GetAddressOf())))
 				throw PaperPup::RuntimeError("Failed to get containing output");
 
 			// Get output monitor
@@ -225,8 +225,8 @@ namespace PaperPup
 			if (fullscreen)
 			{
 				// Get containing output
-				IDXGIOutput *dxgi_output;
-				if (FAILED(swap_chain->GetContainingOutput(&dxgi_output)))
+				ComPtr<IDXGIOutput> dxgi_output;
+				if (FAILED(swap_chain->GetContainingOutput(dxgi_output.GetAddressOf())))
 					throw PaperPup::RuntimeError("Failed to get containing output");
 
 				// Get current swap chain description

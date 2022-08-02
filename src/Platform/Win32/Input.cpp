@@ -44,6 +44,7 @@ namespace PaperPup
 				{
 					// Update render window
 					g_win32_impl->render->Resize();
+					break;
 				}
 			}
 
