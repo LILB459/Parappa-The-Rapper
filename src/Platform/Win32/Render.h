@@ -16,6 +16,7 @@
 #include "Platform/Win32/Win32.h"
 
 #include <d3d11.h>
+#include <dxgi1_5.h>
 #include <atlbase.h>
 
 namespace PaperPup
@@ -29,7 +30,7 @@ namespace PaperPup
 				// Window handle
 				HWND window = nullptr;
 
-				// DirectX11 objects
+				// D3D11 objects
 				template<typename T>
 				using ComPtr = Microsoft::WRL::ComPtr<T>;
 
@@ -43,6 +44,12 @@ namespace PaperPup
 				ComPtr<IDXGISwapChain> swap_chain;
 				ComPtr<ID3D11RenderTargetView> swap_chain_rtv;
 
+				// D3D11 capabilities
+				BOOL cap_allow_tearing = FALSE;
+
+				// Sync state
+				unsigned int sync_interval = 0;
+
 			public:
 				// Win32 implementation interface
 				Win32Impl();
@@ -54,7 +61,11 @@ namespace PaperPup
 				void Resize();
 				
 				void SetWindow(unsigned int width, unsigned int height);
+
+				bool IsFullscreen();
 				void SetFullscreen(bool fullscreen);
+
+				void SetSyncInterval(unsigned int interval);
 
 				void StartFrame();
 				void EndFrame();

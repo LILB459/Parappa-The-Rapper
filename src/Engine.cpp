@@ -31,6 +31,7 @@ namespace PaperPup
 
 		// Set display mode
 		Render::SetWindow(1920, 1080);
+		Render::SetSyncInterval(1);
 	}
 
 	Engine::~Engine()

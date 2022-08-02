@@ -87,6 +87,14 @@ namespace PaperPup
 			if (FAILED(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory.GetAddressOf()))))
 				throw PaperPup::RuntimeError("Failed to get DXGI factory");
 
+			// Get DXGI 1.5 factory
+			ComPtr<IDXGIFactory5> dxgi_factory5;
+			if (SUCCEEDED(dxgi_factory.As(&dxgi_factory5)))
+			{
+				// Check hardware capabilities
+				dxgi_factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &cap_allow_tearing, sizeof(cap_allow_tearing));
+			}
+
 			// Create swap chain
 			CreateSwapChain(nullptr);
 		}
@@ -113,6 +121,10 @@ namespace PaperPup
 			}
 			else
 			{
+				// Ensure our current swap chain exits fullscreen
+				if (swap_chain != nullptr)
+					swap_chain->SetFullscreenState(FALSE, nullptr);
+
 				// Get window client area
 				RECT client_rect = {};
 				GetClientRect(window, &client_rect);
@@ -124,15 +136,18 @@ namespace PaperPup
 				swap_chain_desc.BufferDesc.Height = height;
 				swap_chain_desc.BufferDesc.Format = OUTPUT_FORMAT;
 			}
-			swap_chain_desc.BufferCount = 1;
+			swap_chain_desc.BufferCount = 3;
 			swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
 			swap_chain_desc.SampleDesc.Count = 1;
-			swap_chain_desc.SampleDesc.Quality = 0;
 
 			swap_chain_desc.OutputWindow = window;
 			swap_chain_desc.Windowed = (output_mode == nullptr);
-			swap_chain_desc.Flags = (output_mode != nullptr) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
+			swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+			swap_chain_desc.Flags = 0;
+			if (sync_interval == 0)
+				swap_chain_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 			// Create swap chain
 			swap_chain_rtv.Reset();
@@ -167,9 +182,13 @@ namespace PaperPup
 
 		void Win32Impl::Resize()
 		{
+			// Check swap chain
+			if (swap_chain == nullptr)
+				return;
+
 			// Resize swap chain and render target view to window
 			swap_chain_rtv.Reset();
-			if (FAILED(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0)))
+			if (FAILED(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, (sync_interval == 0) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)))
 				throw PaperPup::RuntimeError("Failed to set resize swap chain");
 			CreateSwapChainRTV();
 
@@ -220,6 +239,15 @@ namespace PaperPup
 			ShowWindow(window, SW_NORMAL);
 		}
 
+		bool Win32Impl::IsFullscreen()
+		{
+			// Get fullscreen state from swap chain
+			BOOL result;
+			if (swap_chain == nullptr || FAILED(swap_chain->GetFullscreenState(&result, nullptr)))
+				return false;
+			return result;
+		}
+
 		void Win32Impl::SetFullscreen(bool fullscreen)
 		{
 			if (fullscreen)
@@ -260,9 +288,30 @@ namespace PaperPup
 			}
 			else
 			{
-				// Set swap chain to windowed
-				if (FAILED(swap_chain->SetFullscreenState(FALSE, nullptr)))
-					throw PaperPup::RuntimeError("Failed to set swap chain to windowed");
+				// Recreate swap chain
+				CreateSwapChain(nullptr);
+			}
+		}
+
+		void Win32Impl::SetSyncInterval(unsigned int interval)
+		{
+			// Set sync state
+			sync_interval = interval;
+
+			if (IsFullscreen())
+			{
+				// Get current swap chain description
+				DXGI_SWAP_CHAIN_DESC current_desc;
+				if (FAILED(swap_chain->GetDesc(&current_desc)))
+					throw PaperPup::RuntimeError("Failed to get swap chain description");
+
+				// Recreate swap chain
+				CreateSwapChain(&current_desc.BufferDesc);
+			}
+			else
+			{
+				// Recreate swap chain
+				CreateSwapChain(nullptr);
 			}
 		}
 
@@ -275,7 +324,10 @@ namespace PaperPup
 		void Win32Impl::EndFrame()
 		{
 			// Present swap chain
-			swap_chain->Present(1, 0);
+			if (sync_interval == 0)
+				swap_chain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+			else
+				swap_chain->Present(sync_interval, 0);
 		}
 
 		// Render interface
@@ -284,9 +336,19 @@ namespace PaperPup
 			g_win32_impl->render->SetWindow(width, height);
 		}
 
+		bool IsFullscreen()
+		{
+			return g_win32_impl->render->IsFullscreen();
+		}
+
 		void SetFullscreen(bool fullscreen)
 		{
 			g_win32_impl->render->SetFullscreen(fullscreen);
+		}
+
+		void SetSyncInterval(unsigned int interval)
+		{
+			g_win32_impl->render->SetSyncInterval(interval);
 		}
 
 		void StartFrame()
