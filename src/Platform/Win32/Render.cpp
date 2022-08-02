@@ -80,11 +80,11 @@ namespace PaperPup
 				throw PaperPup::RuntimeError("Failed to find DirectX 11.0 compatible device");
 
 			// Get DXGI objects
-			if (FAILED(device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgi_device)))
+			if (FAILED(device->QueryInterface(IID_PPV_ARGS(dxgi_device.GetAddressOf()))))
 				throw PaperPup::RuntimeError("Failed to get DXGI device");
 			if (FAILED(dxgi_device->GetAdapter(&dxgi_adapter)))
 				throw PaperPup::RuntimeError("Failed to get DXGI adapter");
-			if (FAILED(dxgi_adapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgi_factory)))
+			if (FAILED(dxgi_adapter->GetParent(IID_PPV_ARGS(dxgi_factory.GetAddressOf()))))
 				throw PaperPup::RuntimeError("Failed to get DXGI factory");
 
 			// Create swap chain
@@ -135,19 +135,58 @@ namespace PaperPup
 			swap_chain_desc.Flags = (output_mode != nullptr) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
 
 			// Create swap chain
-			if (FAILED(dxgi_factory->CreateSwapChain(device.Get(), &swap_chain_desc, &swap_chain)))
+			swap_chain_rtv.Reset();
+			if (FAILED(dxgi_factory->CreateSwapChain(device.Get(), &swap_chain_desc, swap_chain.ReleaseAndGetAddressOf())))
 				throw PaperPup::RuntimeError("Failed to create swap chain");
+
+			// Create new render target view for swap chain
+			CreateSwapChainRTV();
 			
 			// Set swap chain window association
 			if (FAILED(dxgi_factory->MakeWindowAssociation(window, DXGI_MWA_NO_WINDOW_CHANGES)))
 				throw PaperPup::RuntimeError("Failed to set swap chain window association");
 		}
 
+		void Win32Impl::CreateSwapChainRTV()
+		{
+			// Get backbuffer
+			ComPtr<ID3D11Texture2D> backbuffer;
+			if (FAILED(swap_chain->GetBuffer(0, IID_PPV_ARGS(backbuffer.GetAddressOf()))))
+				throw PaperPup::RuntimeError("Failed to get backbuffer");
+
+			// Get backbuffer and render target view desc
+			D3D11_TEXTURE2D_DESC backbuffer_desc;
+			backbuffer->GetDesc(&backbuffer_desc);
+
+			CD3D11_RENDER_TARGET_VIEW_DESC rtv_desc(D3D11_RTV_DIMENSION_TEXTURE2D, backbuffer_desc.Format, 0, 0, backbuffer_desc.ArraySize);
+
+			// Create render target view
+			if (FAILED(device->CreateRenderTargetView(backbuffer.Get(), &rtv_desc, swap_chain_rtv.ReleaseAndGetAddressOf())))
+				throw PaperPup::RuntimeError("Failed to create render target view");
+		}
+
 		void Win32Impl::Resize()
 		{
-			// Resize swap chain to window
+			// Resize swap chain and render target view to window
+			swap_chain_rtv.Reset();
 			if (FAILED(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0)))
 				throw PaperPup::RuntimeError("Failed to set resize swap chain");
+			CreateSwapChainRTV();
+
+			// Get new swap chain description
+			DXGI_SWAP_CHAIN_DESC swap_chain_desc;
+			if (FAILED(swap_chain->GetDesc(&swap_chain_desc)))
+				throw PaperPup::RuntimeError("Failed to get swap chain description");
+
+			// Set viewport
+			D3D11_VIEWPORT viewport = {};
+
+			viewport.TopLeftX = 0;
+			viewport.TopLeftY = 0;
+			viewport.Width = (FLOAT)swap_chain_desc.BufferDesc.Width;
+			viewport.Height = (FLOAT)swap_chain_desc.BufferDesc.Height;
+
+			device_context->RSSetViewports(1, &viewport);
 		}
 
 		void Win32Impl::SetWindow(unsigned int width, unsigned int height)
@@ -217,7 +256,6 @@ namespace PaperPup
 					throw PaperPup::RuntimeError("Failed to get closest display mode");
 
 				// Recreate swap chain
-				swap_chain.Reset();
 				CreateSwapChain(&closest_mode);
 			}
 			else
@@ -226,6 +264,18 @@ namespace PaperPup
 				if (FAILED(swap_chain->SetFullscreenState(FALSE, nullptr)))
 					throw PaperPup::RuntimeError("Failed to set swap chain to windowed");
 			}
+		}
+
+		void Win32Impl::StartFrame()
+		{
+			// Prepare swap chain
+			
+		}
+
+		void Win32Impl::EndFrame()
+		{
+			// Present swap chain
+			swap_chain->Present(1, 0);
 		}
 
 		// Render interface
@@ -237,6 +287,16 @@ namespace PaperPup
 		void SetFullscreen(bool fullscreen)
 		{
 			g_win32_impl->render->SetFullscreen(fullscreen);
+		}
+
+		void StartFrame()
+		{
+			g_win32_impl->render->StartFrame();
+		}
+
+		void EndFrame()
+		{
+			g_win32_impl->render->EndFrame();
 		}
 	}
 }

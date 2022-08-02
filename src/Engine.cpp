@@ -44,12 +44,16 @@ namespace PaperPup
 		if (Input::HandleEvents())
 			return true;
 
+		// Start render frame
+		Render::StartFrame();
+
 		return false;
 	}
 
 	void Engine::EndFrame()
 	{
-		// Present renderer
+		// End render frame
+		Render::EndFrame();
 	}
 
 	void Engine::Start()

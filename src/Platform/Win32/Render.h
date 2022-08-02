@@ -41,7 +41,7 @@ namespace PaperPup
 				ComPtr<IDXGIFactory> dxgi_factory;
 
 				ComPtr<IDXGISwapChain> swap_chain;
-				ComPtr<ID3D11RenderTargetView> render_target_view;
+				ComPtr<ID3D11RenderTargetView> swap_chain_rtv;
 
 			public:
 				// Win32 implementation interface
@@ -49,11 +49,15 @@ namespace PaperPup
 				~Win32Impl();
 
 				void CreateSwapChain(const DXGI_MODE_DESC *output_mode);
+				void CreateSwapChainRTV();
 
 				void Resize();
 				
 				void SetWindow(unsigned int width, unsigned int height);
 				void SetFullscreen(bool fullscreen);
+
+				void StartFrame();
+				void EndFrame();
 		};
 	}
 }

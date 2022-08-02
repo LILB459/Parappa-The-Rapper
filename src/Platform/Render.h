@@ -20,5 +20,8 @@ namespace PaperPup
 		// Render interface
 		void SetWindow(unsigned int width, unsigned int height);
 		void SetFullscreen(bool fullscreen);
+
+		void StartFrame();
+		void EndFrame();
 	}
 }

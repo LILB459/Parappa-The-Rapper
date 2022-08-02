@@ -11,6 +11,8 @@
 
 #include "Platform/Win32/Input.h"
 
+#include "Platform/Win32/Render.h"
+
 namespace PaperPup
 {
 	namespace Input
@@ -33,8 +35,16 @@ namespace PaperPup
 			{
 				case WM_DESTROY:
 				case WM_CLOSE:
+				{
 					PostQuitMessage(0);
 					return 0;
+				}
+
+				case WM_SIZE:
+				{
+					// Update render window
+					g_win32_impl->render->Resize();
+				}
 			}
 
 			// Handle default process
@@ -49,7 +59,7 @@ namespace PaperPup
 			while (PeekMessageW(&window_msg, nullptr, 0, 0, PM_REMOVE))
 			{
 				TranslateMessage(&window_msg);
-				DispatchMessageA(&window_msg);
+				DispatchMessageW(&window_msg);
 				if (window_msg.message == WM_QUIT)
 					return true;
 			}
