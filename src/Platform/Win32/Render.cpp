@@ -146,7 +146,7 @@ namespace PaperPup
 			swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 			swap_chain_desc.Flags = 0;
-			if (sync_interval == 0)
+			if (sync_tearing_enabled)
 				swap_chain_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 			// Create swap chain
@@ -188,7 +188,7 @@ namespace PaperPup
 
 			// Resize swap chain and render target view to window
 			swap_chain_rtv.Reset();
-			if (FAILED(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, (sync_interval == 0) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)))
+			if (FAILED(swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, (sync_tearing_enabled) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0)))
 				throw PaperPup::RuntimeError("Failed to set resize swap chain");
 			CreateSwapChainRTV();
 
@@ -293,10 +293,16 @@ namespace PaperPup
 			}
 		}
 
-		void Win32Impl::SetSyncInterval(unsigned int interval)
+		void Win32Impl::SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
 		{
 			// Set sync state
-			sync_interval = interval;
+			sync_limiter_enabled = limiter_enabled && (limiter != 0);
+			sync_limiter = limiter;
+
+			sync_limiter_tick = (double)GetTickCount64();
+
+			sync_tearing_enabled = tearing_enabled && !vsync_enabled;
+			sync_vsync_enabled = vsync_enabled;
 
 			if (IsFullscreen())
 			{
@@ -324,40 +330,68 @@ namespace PaperPup
 		void Win32Impl::EndFrame()
 		{
 			// Present swap chain
-			if (sync_interval == 0)
-				swap_chain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+			if (sync_vsync_enabled)
+			{
+				// Present with vsync
+				swap_chain->Present(1, 0);
+			}
 			else
-				swap_chain->Present(sync_interval, 0);
+			{
+				// Present without vsync
+				swap_chain->Present(0, sync_tearing_enabled ? DXGI_PRESENT_ALLOW_TEARING : 0);
+
+				// Perform frame limiting
+				if (sync_limiter_enabled)
+				{
+					// Get time of a limiter tick
+					const double limiter_time = (1000.0 / (double)sync_limiter);
+
+					// Correct out of sync ticker
+					if ((double)GetTickCount64() > (sync_limiter_tick + (limiter_time * 2.0)))
+						sync_limiter_tick = (double)GetTickCount64();
+
+					// Sleep until next tick
+					sync_limiter_tick += limiter_time;
+					while ((double)GetTickCount64() < sync_limiter_tick)
+						Sleep(1);
+				}
+			}
 		}
 
 		// Render interface
 		void SetWindow(unsigned int width, unsigned int height)
 		{
+			// Set implementation window
 			g_win32_impl->render->SetWindow(width, height);
 		}
 
 		bool IsFullscreen()
 		{
+			// Return implementation fullscreen
 			return g_win32_impl->render->IsFullscreen();
 		}
 
 		void SetFullscreen(bool fullscreen)
 		{
+			// Set implementation fullscreen
 			g_win32_impl->render->SetFullscreen(fullscreen);
 		}
 
-		void SetSyncInterval(unsigned int interval)
+		void SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
 		{
-			g_win32_impl->render->SetSyncInterval(interval);
+			// Set implementation sync
+			g_win32_impl->render->SetSync(limiter_enabled, limiter, tearing_enabled, vsync_enabled);
 		}
 
 		void StartFrame()
 		{
+			// Start implementation frame
 			g_win32_impl->render->StartFrame();
 		}
 
 		void EndFrame()
 		{
+			// End implementation frame
 			g_win32_impl->render->EndFrame();
 		}
 	}

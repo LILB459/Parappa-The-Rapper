@@ -1,2 +1,2 @@
 # PaperPup
- Open-source PaRappa the Rapper re-implementation
+C++ reimplementation of PaRappa the Rapper for PC

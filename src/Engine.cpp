@@ -31,7 +31,7 @@ namespace PaperPup
 
 		// Set display mode
 		Render::SetWindow(1920, 1080);
-		Render::SetSyncInterval(1);
+		Render::SetSync(false, 144, false, true);
 	}
 
 	Engine::~Engine()
@@ -41,12 +41,12 @@ namespace PaperPup
 
 	bool Engine::StartFrame()
 	{
+		// Start render frame
+		Render::StartFrame();
+
 		// Handle input events
 		if (Input::HandleEvents())
 			return true;
-
-		// Start render frame
-		Render::StartFrame();
 
 		return false;
 	}

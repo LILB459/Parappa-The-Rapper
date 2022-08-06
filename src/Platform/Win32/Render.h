@@ -48,7 +48,14 @@ namespace PaperPup
 				BOOL cap_allow_tearing = FALSE;
 
 				// Sync state
-				unsigned int sync_interval = 0;
+				bool sync_limiter_enabled = false;
+				unsigned int sync_limiter = 0;
+
+				double sync_limiter_tick = 0.0;
+
+				bool sync_tearing_enabled = false;
+				bool sync_vsync_enabled = true;
+
 
 			public:
 				// Win32 implementation interface
@@ -65,7 +72,7 @@ namespace PaperPup
 				bool IsFullscreen();
 				void SetFullscreen(bool fullscreen);
 
-				void SetSyncInterval(unsigned int interval);
+				void SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled);
 
 				void StartFrame();
 				void EndFrame();

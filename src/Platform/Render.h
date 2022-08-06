@@ -17,13 +17,24 @@ namespace PaperPup
 {
 	namespace Render
 	{
+		// Texture class
+		class Texture
+		{
+			public:
+				// Texture interface
+				virtual ~Texture() {}
+
+				virtual void Image(unsigned int w, unsigned int h, void *data) = 0;
+				virtual void SubImage(unsigned int x, unsigned int y, unsigned int w, unsigned int h, void *data) = 0;
+		};
+
 		// Render interface
 		void SetWindow(unsigned int width, unsigned int height);
 
 		bool IsFullscreen();
 		void SetFullscreen(bool fullscreen);
 
-		void SetSyncInterval(unsigned int interval);
+		void SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled);
 
 		void StartFrame();
 		void EndFrame();

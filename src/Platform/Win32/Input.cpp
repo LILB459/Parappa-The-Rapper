@@ -36,6 +36,7 @@ namespace PaperPup
 				case WM_DESTROY:
 				case WM_CLOSE:
 				{
+					// Post quit message for program
 					PostQuitMessage(0);
 					return 0;
 				}
