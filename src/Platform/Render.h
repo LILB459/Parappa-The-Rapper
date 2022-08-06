@@ -31,11 +31,11 @@ namespace PaperPup
 			public:
 				// Texture interface
 				static Texture *New();
-				static Texture *New(TextureBind bind, unsigned int w, unsigned int h, const void *data);
+				static Texture *New(unsigned int bind, unsigned int w, unsigned int h, const void *data);
 
 				virtual ~Texture() {}
 
-				virtual void Image(TextureBind bind, unsigned int w, unsigned int h, const void *data) = 0;
+				virtual void Image(unsigned int bind, unsigned int w, unsigned int h, const void *data) = 0;
 				virtual void SubImage(unsigned int x, unsigned int y, unsigned int w, unsigned int h, const void *data) = 0;
 		};
 

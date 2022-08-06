@@ -34,7 +34,7 @@ namespace PaperPup
 		Render::SetSync(false, 144, false, true);
 
 		// Texture test
-		std::unique_ptr<Render::Texture> testure(Render::Texture::New(Render::TextureBind::Resource, 1024, 512, nullptr));
+		std::unique_ptr<Render::Texture> testure(Render::Texture::New(Render::TextureBind::Dynamic | Render::TextureBind::Resource, 1024, 512, nullptr));
 	}
 
 	Engine::~Engine()

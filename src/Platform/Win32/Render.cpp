@@ -47,7 +47,7 @@ namespace PaperPup
 
 				}
 
-				Texture_Win32Impl(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+				Texture_Win32Impl(unsigned int bind, unsigned int w, unsigned int h, const void *data)
 				{
 					// Image texture
 					Image(bind, w, h, data);
@@ -58,7 +58,7 @@ namespace PaperPup
 
 				}
 
-				void Image(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+				void Image(unsigned int bind, unsigned int w, unsigned int h, const void *data)
 				{
 					// Reset pointers
 					texture_srv.Reset();
@@ -127,7 +127,7 @@ namespace PaperPup
 			return new Texture_Win32Impl();
 		}
 
-		Texture *Texture::New(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+		Texture *Texture::New(unsigned int bind, unsigned int w, unsigned int h, const void *data)
 		{
 			// Create new implementation texture
 			return new Texture_Win32Impl(bind, w, h, data);
