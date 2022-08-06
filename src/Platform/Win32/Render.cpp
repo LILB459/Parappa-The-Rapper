@@ -134,7 +134,7 @@ namespace PaperPup
 		}
 
 		// Win32 implementation interface
-		Win32Impl::Win32Impl()
+		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
 		{
 			// Define window class
 			WNDCLASSEXW window_class = {};

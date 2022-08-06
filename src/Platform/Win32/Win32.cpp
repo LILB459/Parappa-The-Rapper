@@ -12,6 +12,7 @@
 #include "Platform/Win32/Win32.h"
 
 #include "Platform/Win32/Filesystem.h"
+#include "Platform/Win32/Userdata.h"
 #include "Platform/Win32/Render.h"
 #include "Platform/Win32/Input.h"
 
@@ -31,9 +32,10 @@ namespace PaperPup
 	Win32Impl::Win32Impl()
 	{
 		// Initialize systems
-		filesystem = std::make_unique<Filesystem::Win32Impl>();
-		render = std::make_unique<Render::Win32Impl>();
-		input = std::make_unique<Input::Win32Impl>();
+		filesystem = std::make_unique<Filesystem::Win32Impl>(*this);
+		userdata = std::make_unique<Userdata::Win32Impl>(*this);
+		render = std::make_unique<Render::Win32Impl>(*this);
+		input = std::make_unique<Input::Win32Impl>(*this);
 	}
 
 	Win32Impl::~Win32Impl()

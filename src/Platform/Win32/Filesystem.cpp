@@ -74,18 +74,6 @@ namespace PaperPup
 			}
 		}
 
-		// Win32 implementation interface
-		Win32Impl::Win32Impl()
-		{
-			// Get module path
-			module_path = GetModulePath();
-		}
-
-		Win32Impl::~Win32Impl()
-		{
-
-		}
-
 		// Image interface
 		class Binary_Win32Impl : public Binary
 		{
@@ -244,11 +232,11 @@ namespace PaperPup
 						DWORD file_size = GetFileSize(handle_file, nullptr);
 						if (file_size <= 0)
 							return nullptr;
-						char *data = new char[file_size];
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(file_size);
 
 						// Read file contents
 						DWORD result;
-						BOOL read_result = ReadFile(handle_file, data, file_size, &result, nullptr);
+						BOOL read_result = ReadFile(handle_file, data.get(), file_size, &result, nullptr);
 						CloseHandle(handle_file);
 
 						if (read_result == FALSE || result != file_size)
@@ -257,10 +245,10 @@ namespace PaperPup
 						// Ensure mode 2 data is mode 2
 						size_t data_size = file_size;
 						if (mode2)
-							InsureMode2(&data, &data_size);
+							InsureMode2(data, &data_size);
 
 						// Return file
-						return new File(data, file_size);
+						return new File(data.release(), file_size);
 					}
 
 					// Try to open file binary
@@ -280,6 +268,18 @@ namespace PaperPup
 		{
 			// Open image
 			return new Image_Win32Impl(name);
+		}
+
+		// Win32 implementation interface
+		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
+		{
+			// Get module path
+			module_path = GetModulePath();
+		}
+
+		Win32Impl::~Win32Impl()
+		{
+
 		}
 
 		// Filesystem functions

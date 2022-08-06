@@ -59,7 +59,7 @@ namespace PaperPup
 
 			public:
 				// Win32 implementation interface
-				Win32Impl();
+				Win32Impl(PaperPup::Win32Impl &win32_impl);
 				~Win32Impl();
 
 				void CreateSwapChain(const DXGI_MODE_DESC *output_mode);

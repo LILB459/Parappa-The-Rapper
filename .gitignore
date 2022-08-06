@@ -6,7 +6,8 @@ out/
 *.pdb
 *.ilk
 
-# Exclude mod files
+# Exclude mod files and userdata
+bin/Userdata.bin
 bin/Image.bin
 bin/Packs/*
 !bin/Packs/README.txt

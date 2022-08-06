@@ -24,6 +24,7 @@ namespace PaperPup
 {
 	// Win32 implementation
 	namespace Filesystem { class Win32Impl; }
+	namespace Userdata { class Win32Impl; }
 	namespace Render { class Win32Impl; }
 	namespace Input { class Win32Impl; }
 
@@ -32,6 +33,7 @@ namespace PaperPup
 		public:
 			// Systems
 			std::unique_ptr<Filesystem::Win32Impl> filesystem;
+			std::unique_ptr<Userdata::Win32Impl> userdata;
 			std::unique_ptr<Render::Win32Impl> render;
 			std::unique_ptr<Input::Win32Impl> input;
 

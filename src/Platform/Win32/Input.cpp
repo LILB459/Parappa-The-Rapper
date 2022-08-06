@@ -18,7 +18,7 @@ namespace PaperPup
 	namespace Input
 	{
 		// Win32 implementation
-		Win32Impl::Win32Impl()
+		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
 		{
 
 		}

@@ -13,6 +13,7 @@
 
 #include "Menu/Menu.h"
 
+#include "Platform/Userdata.h"
 #include "Platform/Render.h"
 #include "Platform/Input.h"
 
@@ -33,8 +34,9 @@ namespace PaperPup
 		Render::SetWindow(1920, 1080);
 		Render::SetSync(false, 144, false, true);
 
-		// Texture test
-		std::unique_ptr<Render::Texture> testure(Render::Texture::New(Render::TextureBind::Dynamic | Render::TextureBind::Resource, 1024, 512, nullptr));
+		// Userdata test
+		Userdata::Set("settings/window_width", "1920.0");
+		Userdata::Set("settings/window_height", "1080.0");
 	}
 
 	Engine::~Engine()

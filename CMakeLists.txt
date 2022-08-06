@@ -40,10 +40,12 @@ add_executable(PaperPup WIN32
 	# = Platform =
 	"src/Platform/Platform.h"
 	"src/Platform/Filesystem.h"
+	"src/Platform/Userdata.h"
 	"src/Platform/Render.h"
 	"src/Platform/Input.h"
 
 	# = Platform Common =
+	"src/Platform/Common/Userdata.h"
 	"src/Platform/Common/Mode2.h"
 	"src/Platform/Common/Binary.h"
 	"src/Platform/Common/IntArchive.h"
@@ -127,6 +129,8 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 		"src/Platform/Win32/Win32.h"
 		"src/Platform/Win32/Filesystem.cpp"
 		"src/Platform/Win32/Filesystem.h"
+		"src/Platform/Win32/Userdata.cpp"
+		"src/Platform/Win32/Userdata.h"
 		"src/Platform/Win32/Render.cpp"
 		"src/Platform/Win32/Render.h"
 		"src/Platform/Win32/Input.cpp"

@@ -19,7 +19,7 @@ namespace PaperPup
 	namespace Filesystem
 	{
 		// Mode 2 insurance function
-		static void InsureMode2(char **data, size_t *size)
+		static void InsureMode2(std::unique_ptr<char[]> &data, size_t *size)
 		{
 			// Check file size
 			bool is2336 = (*size % SECTOR_MODE2_PARTIAL) == 0;
@@ -35,7 +35,7 @@ namespace PaperPup
 				{
 					// Sync bytes determine a mode 2 file
 					static const unsigned char sync_bytes[12] = { 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
-					if (std::memcmp(sync_bytes, *data, 12))
+					if (std::memcmp(sync_bytes, data.get(), 12))
 						is_mode2 = false;
 					else
 						is_mode2 = true;
@@ -55,7 +55,7 @@ namespace PaperPup
 			if (!is_mode2)
 			{
 				// Insert mode 2 header for each sector
-				char *datap = *data;
+				char *datap = data.get();
 
 				size_t sectors = *size / SECTOR_MODE2_PARTIAL;
 				char *mode2_data = new char[sectors * SECTOR_MODE2];
@@ -71,8 +71,7 @@ namespace PaperPup
 				}
 
 				// Return new mode 2 file
-				delete[] *data;
-				*data = mode2_data;
+				data.reset(mode2_data);
 				*size = sectors * SECTOR_MODE2;
 			}
 		}
