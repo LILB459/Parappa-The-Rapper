@@ -18,15 +18,25 @@ namespace PaperPup
 	namespace Render
 	{
 		// Texture class
+		enum TextureBind
+		{
+			None = 0,
+			Resource = (1 << 0),
+			Target = (1 << 1),
+			Dynamic = (1 << 2)
+		};
+
 		class Texture
 		{
 			public:
 				// Texture interface
 				static Texture *New();
+				static Texture *New(TextureBind bind, unsigned int w, unsigned int h, const void *data);
+
 				virtual ~Texture() {}
 
-				virtual void Image(unsigned int w, unsigned int h, void *data) = 0;
-				virtual void SubImage(unsigned int x, unsigned int y, unsigned int w, unsigned int h, void *data) = 0;
+				virtual void Image(TextureBind bind, unsigned int w, unsigned int h, const void *data) = 0;
+				virtual void SubImage(unsigned int x, unsigned int y, unsigned int w, unsigned int h, const void *data) = 0;
 		};
 
 		// Render interface

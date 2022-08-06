@@ -24,6 +24,115 @@ namespace PaperPup
 
 		static constexpr DXGI_FORMAT OUTPUT_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
+		static constexpr DXGI_FORMAT TEXTURE_FORMAT = DXGI_FORMAT_R16_UINT;
+		static constexpr size_t TEXTURE_PIXELWIDTH = 2;
+
+		// Texture class
+		class Texture_Win32Impl : public Texture
+		{
+			private:
+				// D3D11 objects
+				template<typename T>
+				using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+				ComPtr<ID3D11Texture2D> texture;
+				ComPtr<ID3D11ShaderResourceView> texture_srv;
+				ComPtr<ID3D11RenderTargetView> texture_rtv;
+				
+
+			public:
+				// Texture interface
+				Texture_Win32Impl()
+				{
+
+				}
+
+				Texture_Win32Impl(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+				{
+					// Image texture
+					Image(bind, w, h, data);
+				}
+
+				~Texture_Win32Impl()
+				{
+
+				}
+
+				void Image(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+				{
+					// Reset pointers
+					texture_srv.Reset();
+					texture_rtv.Reset();
+					texture.Reset();
+
+					// Create image description
+					CD3D11_TEXTURE2D_DESC desc(TEXTURE_FORMAT, w, h, 1, 1,
+						((bind & TextureBind::Resource) ? D3D11_BIND_SHADER_RESOURCE : 0) | ((bind & TextureBind::Target) ? D3D11_BIND_RENDER_TARGET : 0),
+						(bind & TextureBind::Dynamic) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT, (bind & TextureBind::Dynamic) ? D3D11_CPU_ACCESS_WRITE : 0,
+						1, 0, 0
+					);
+
+					// Create subresource
+					D3D11_SUBRESOURCE_DATA srd;
+					srd.pSysMem = data;
+					srd.SysMemSlicePitch = (srd.SysMemPitch = (w * TEXTURE_PIXELWIDTH)) * h;
+
+					// Create texture
+					if (FAILED(g_win32_impl->render->device->CreateTexture2D(&desc, data ? &srd : nullptr, texture.GetAddressOf())))
+						throw PaperPup::RuntimeError("Failed to create D3D11 texture");
+
+					// Create shader render view
+					if (bind & TextureBind::Resource)
+					{
+						CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(D3D11_SRV_DIMENSION_TEXTURE2D, TEXTURE_FORMAT, 0, 1, 0, 1);
+						if (FAILED(g_win32_impl->render->device->CreateShaderResourceView(texture.Get(), &srv_desc, texture_srv.GetAddressOf())))
+							throw PaperPup::RuntimeError("Failed to create texture shader render view");
+					}
+
+					// Create texture render view
+					if (bind & TextureBind::Target)
+					{
+						CD3D11_RENDER_TARGET_VIEW_DESC rtv_desc(D3D11_RTV_DIMENSION_TEXTURE2D, TEXTURE_FORMAT, 0, 0, 1);
+						if (FAILED(g_win32_impl->render->device->CreateRenderTargetView(texture.Get(), &rtv_desc, texture_rtv.GetAddressOf())))
+							throw PaperPup::RuntimeError("Failed to create texture render view");
+					}
+				}
+
+				void SubImage(unsigned int x, unsigned int y, unsigned int w, unsigned int h, const void *data)
+				{
+					// Map texture subresource
+					D3D11_MAPPED_SUBRESOURCE texture_subresource;
+					if (FAILED(g_win32_impl->render->device_context->Map(texture.Get(), 0, D3D11_MAP_WRITE, 0, &texture_subresource)))
+						throw PaperPup::RuntimeError("Failed to map texture subresource");
+
+					// Copy into texture area
+					const char *inp = (char*)data;
+					char *outp = (char*)texture_subresource.pData + (y * texture_subresource.RowPitch) + (x * TEXTURE_PIXELWIDTH);
+
+					for (unsigned int i = 0; i < h; i++)
+					{
+						std::memcpy(outp, inp, w * TEXTURE_PIXELWIDTH);
+						outp += texture_subresource.RowPitch;
+						inp += (w * TEXTURE_PIXELWIDTH);
+					}
+
+					// Unmap texture subresource
+					g_win32_impl->render->device_context->Unmap(texture.Get(), 0);
+				}
+		};
+
+		Texture *Texture::New()
+		{
+			// Create new implementation texture
+			return new Texture_Win32Impl();
+		}
+
+		Texture *Texture::New(TextureBind bind, unsigned int w, unsigned int h, const void *data)
+		{
+			// Create new implementation texture
+			return new Texture_Win32Impl(bind, w, h, data);
+		}
+
 		// Win32 implementation interface
 		Win32Impl::Win32Impl()
 		{
@@ -296,7 +405,7 @@ namespace PaperPup
 		void Win32Impl::SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
 		{
 			// Set sync state
-			sync_limiter_enabled = limiter_enabled && (limiter != 0);
+			sync_limiter_enabled = limiter_enabled && (limiter != 0) && !vsync_enabled;
 			sync_limiter = limiter;
 
 			sync_limiter_tick = (double)GetTickCount64();
