@@ -26,7 +26,7 @@ namespace PaperPup
 
 		}
 
-		std::unique_ptr<State> Menu::Start()
+		State *Menu::Start()
 		{
 			while (!g_engine->StartFrame())
 			{

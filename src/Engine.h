@@ -26,10 +26,10 @@ namespace PaperPup
 			// State interface
 			virtual ~State() {}
 
-			virtual std::unique_ptr<State> Start() = 0;
+			virtual State *Start() = 0;
 
-			virtual std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name) = 0;
-			virtual std::unique_ptr<Filesystem::File> OpenFile(std::string name, bool mode2) = 0;
+			virtual Filesystem::Archive *OpenArchive(std::string name) = 0;
+			virtual Filesystem::File *OpenFile(std::string name, bool mode2) = 0;
 	};
 
 	class Engine
@@ -51,9 +51,9 @@ namespace PaperPup
 			bool StartFrame();
 			void EndFrame();
 
-			std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name)
+			Filesystem::Archive *OpenArchive(std::string name)
 			{
-				std::unique_ptr<Filesystem::Archive> archive;
+				Filesystem::Archive *archive;
 				if (state != nullptr)
 				{
 					if ((archive = state->OpenArchive(name)) != nullptr)
@@ -67,9 +67,9 @@ namespace PaperPup
 				return nullptr;
 			}
 
-			std::unique_ptr<Filesystem::File> OpenFile(std::string name, bool mode2)
+			Filesystem::File *OpenFile(std::string name, bool mode2)
 			{
-				std::unique_ptr<Filesystem::File> file;
+				Filesystem::File *file;
 				if (state != nullptr)
 				{
 					if ((file = state->OpenFile(name, mode2)) != nullptr)

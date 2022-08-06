@@ -22,6 +22,7 @@ namespace PaperPup
 		{
 			public:
 				// Texture interface
+				static Texture *New();
 				virtual ~Texture() {}
 
 				virtual void Image(unsigned int w, unsigned int h, void *data) = 0;

@@ -107,12 +107,12 @@ namespace PaperPup
 			size_t source_size;
 			{
 				// Open source file
-				std::unique_ptr<Filesystem::File> source_file = g_engine->OpenFile(name, false);
+				std::unique_ptr<Filesystem::File> source_file(g_engine->OpenFile(name, false));
 				if (source_file == nullptr)
 					throw PaperPup::RuntimeError("Failed to open source for module " + name);
 
 				// Read source file
-				source = source_file->Dup();
+				source.reset(source_file->Dup());
 				source_size = source_file->Size();
 			}
 

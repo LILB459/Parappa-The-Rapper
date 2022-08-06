@@ -176,18 +176,20 @@ namespace PaperPup
 
 				void Require(std::string name);
 				void RequireSource(std::string source, std::string name);
-				void RequireFile(std::unique_ptr<Filesystem::File> &file, std::string name)
+				void RequireFile(Filesystem::File *file, std::string name)
 				{
 					if (file == nullptr)
 						throw PaperPup::RuntimeError("Failed to open source for module " + name);
-					RequireSource(std::string(file->Dup().get(), file->Size()), name);
+					RequireSource(std::string(file->Dup(), file->Size()), name);
 				}
-				void RequireImageFile(std::unique_ptr<Filesystem::Image> &image, std::string name)
+				void RequireImageFile(Filesystem::Image *image, std::string name)
 				{
-					std::unique_ptr<Filesystem::File> file = image->OpenFile(name, false);
+					std::unique_ptr<Filesystem::File> file(image->OpenFile(name, false));
 					if (file == nullptr)
 						throw PaperPup::RuntimeError("Failed to open source for module " + name);
-					RequireSource(std::string(file->Dup().get(), file->Size()), name);
+
+					std::unique_ptr<char[]> source(file->Dup());
+					RequireSource(std::string(source.get(), file->Size()), name);
 				}
 
 				void Register(const char *name, luaL_Reg *library, luaL_Reg *meta);

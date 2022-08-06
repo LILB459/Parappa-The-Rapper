@@ -40,11 +40,8 @@ namespace PaperPup
 
 			public:
 				// Int archive interface
-				IntArchive(std::unique_ptr<File> &_file)
+				IntArchive(File *_file): file(_file)
 				{
-					// Obtain file pointer
-					file = std::move(_file);
-
 					// Read blocks
 					while (1)
 					{
@@ -111,7 +108,7 @@ namespace PaperPup
 
 				}
 
-				std::unique_ptr<File> OpenFile(std::string name)
+				File *OpenFile(std::string name)
 				{
 					// Get directory
 					auto dir = directory.find(name);
@@ -123,7 +120,7 @@ namespace PaperPup
 					if (file->Seek(dir->second.offset) == false || file->Read(data, dir->second.size) != dir->second.size)
 						throw PaperPup::RuntimeError("Archive failed to read file data");
 
-					return std::make_unique<File>(data, dir->second.size);
+					return new File(data, dir->second.size);
 				}
 		};
 	}

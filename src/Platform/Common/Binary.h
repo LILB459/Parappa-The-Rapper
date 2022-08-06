@@ -43,7 +43,7 @@ namespace PaperPup
 				// Binary interface
 				virtual ~Binary() {}
 
-				std::unique_ptr<File> OpenFile(std::string name, bool mode2)
+				File *OpenFile(std::string name, bool mode2)
 				{
 					// Get directory
 					auto dir = directory.find(name);
@@ -60,7 +60,7 @@ namespace PaperPup
 						SeekLBA(dir->second.lba);
 						ReadSector(data, sectors);
 
-						return std::make_unique<File>(data, sectors * SECTOR_MODE2);
+						return new File(data, sectors * SECTOR_MODE2);
 					}
 					else
 					{
@@ -78,7 +78,7 @@ namespace PaperPup
 							datap += SECTOR_MODE1;
 						}
 
-						return std::make_unique<File>(data, dir->second.size);
+						return new File(data, dir->second.size);
 					}
 					return nullptr;
 				}

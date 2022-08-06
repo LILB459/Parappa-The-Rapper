@@ -19,12 +19,12 @@ namespace PaperPup
 		Lua::LuaController lua;
 
 		// Open pack image
-		std::unique_ptr<Filesystem::Image> pack_image = Filesystem::Image::Open("Packs/" + name + "/Image");
+		std::unique_ptr<Filesystem::Image> pack_image(Filesystem::Image::Open("Packs/" + name + "/Image"));
 		if (pack_image == nullptr)
 			throw PaperPup::RuntimeError(name + " pack has no image");
 
 		// Open pack module
-		lua.RequireImageFile(pack_image, "PACK.LUA");
+		lua.RequireImageFile(pack_image.get(), "PACK.LUA");
 
 		// Get pack information
 		pack_name = Lua::GetString(lua.global_state, -1, "Name");
@@ -43,7 +43,7 @@ namespace PaperPup
 			std::string song_name = lua_tostring(lua.global_state, -1);
 
 			// Open song module
-			lua.RequireImageFile(pack_image, song_name + "/SONG.LUA");
+			lua.RequireImageFile(pack_image.get(), song_name + "/SONG.LUA");
 
 			// Get song information
 			Song song;

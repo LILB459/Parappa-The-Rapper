@@ -31,11 +31,11 @@ namespace PaperPup
 		{
 			public:
 				// Image interface
-				static std::unique_ptr<Image> Open(std::string name);
+				static Image *Open(std::string name);
 				virtual ~Image() {}
 
-				virtual std::unique_ptr<Archive> OpenArchive(std::string name) = 0;
-				virtual std::unique_ptr<File> OpenFile(std::string name, bool mode2) = 0;
+				virtual Archive *OpenArchive(std::string name) = 0;
+				virtual File *OpenFile(std::string name, bool mode2) = 0;
 		};
 
 		// Archive class
@@ -45,7 +45,7 @@ namespace PaperPup
 				// Archive interface
 				virtual ~Archive() {}
 
-				virtual std::unique_ptr<File> OpenFile(std::string name) = 0;
+				virtual File *OpenFile(std::string name) = 0;
 		};
 		
 		// File class
@@ -95,11 +95,11 @@ namespace PaperPup
 					return length;
 				}
 
-				std::unique_ptr<char[]> Dup() const
+				char *Dup() const
 				{
 					// Create new buffer with file contents
-					std::unique_ptr<char[]> dup = std::make_unique<char[]>(size);
-					std::memcpy(dup.get(), data.get(), size);
+					char *dup = new char[size];
+					std::memcpy(dup, data.get(), size);
 					return dup;
 				}
 		};

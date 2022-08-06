@@ -151,7 +151,7 @@ namespace PaperPup
 					path_archive = g_win32_impl->filesystem->module_path + Win32::UTF8ToWide(name) + L"\\";
 
 					// Open archive file
-					std::unique_ptr<File> file_archive = image->OpenFile(name + ".INT", false);
+					File *file_archive = image->OpenFile(name + ".INT", false);
 					if (file_archive != nullptr)
 						archive = std::make_unique<IntArchive>(file_archive);
 				}
@@ -161,7 +161,7 @@ namespace PaperPup
 
 				}
 
-				std::unique_ptr<File> OpenFile(std::string name) override
+				File *OpenFile(std::string name) override
 				{
 					// Try to open from folder
 					std::wstring path_file = path_archive + Win32::UTF8ToWide(name);
@@ -183,13 +183,13 @@ namespace PaperPup
 						if (read_result == FALSE || result != file_size)
 							return nullptr;
 						else
-							return std::make_unique<File>(data, file_size);
+							return new File(data, file_size);
 					}
 
 					// Try to open from archive
 					if (archive != nullptr)
 					{
-						std::unique_ptr<File> file;
+						File *file;
 						if ((file = archive->OpenFile(name)) != nullptr)
 							return file;
 					}
@@ -225,14 +225,13 @@ namespace PaperPup
 					
 				}
 
-				std::unique_ptr<Archive> OpenArchive(std::string name)
+				Archive *OpenArchive(std::string name)
 				{
 					// Open archive
-					std::unique_ptr<Archive_Win32Impl> archive = std::make_unique<Archive_Win32Impl>(this, name);
-					return archive;
+					return new Archive_Win32Impl(this, name);
 				}
 
-				std::unique_ptr<File> OpenFile(std::string name, bool mode2) override
+				File *OpenFile(std::string name, bool mode2) override
 				{
 					// Try to open from folder
 					std::wstring path_file = path_image + Win32::UTF8ToWide(name);
@@ -261,13 +260,13 @@ namespace PaperPup
 							InsureMode2(&data, &data_size);
 
 						// Return file
-						return std::make_unique<File>(data, file_size);
+						return new File(data, file_size);
 					}
 
 					// Try to open file binary
 					if (binary != nullptr)
 					{
-						std::unique_ptr<File> file;
+						File *file;
 						if ((file = binary->OpenFile(name, mode2)) != nullptr)
 							return file;
 					}
@@ -277,11 +276,10 @@ namespace PaperPup
 				}
 		};
 
-		std::unique_ptr<Image> Image::Open(std::string name)
+		Image *Image::Open(std::string name)
 		{
 			// Open image
-			std::unique_ptr<Image_Win32Impl> image = std::make_unique<Image_Win32Impl>(name);
-			return image;
+			return new Image_Win32Impl(name);
 		}
 
 		// Filesystem functions

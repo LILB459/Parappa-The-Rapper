@@ -30,10 +30,10 @@ namespace PaperPup
 				Menu();
 				~Menu() override;
 
-				std::unique_ptr<State> Start() override;
+				State *Start() override;
 
-				std::unique_ptr<Filesystem::Archive> OpenArchive(std::string name) override { return nullptr; }
-				std::unique_ptr<Filesystem::File> OpenFile(std::string name, bool mode2) override { return nullptr; }
+				Filesystem::Archive *OpenArchive(std::string name) override { return nullptr; }
+				Filesystem::File *OpenFile(std::string name, bool mode2) override { return nullptr; }
 		};
 	}
 }

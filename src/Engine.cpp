@@ -25,7 +25,7 @@ namespace PaperPup
 	Engine::Engine()
 	{
 		// Open main image
-		image_main = Filesystem::Image::Open("Image");
+		image_main.reset(Filesystem::Image::Open("Image"));
 		if (image_main == nullptr)
 			throw PaperPup::RuntimeError("Failed to open main image");
 
@@ -59,11 +59,9 @@ namespace PaperPup
 
 	void Engine::Start()
 	{
-		// Start menu state
-		state = std::make_unique<Menu::Menu>();
-
 		// Engine loop
+		state = std::make_unique<Menu::Menu>();
 		while (state != nullptr)
-			state = state->Start();
+			state.reset(state->Start());
 	}
 }
