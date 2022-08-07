@@ -30,38 +30,18 @@ namespace PaperPup
 				DWORD userdata_size = GetFileSize(handle_userdata, nullptr);
 				if (userdata_size <= 0)
 					return;
-				std::unique_ptr<char[]> userdata_data = std::make_unique<char[]>(userdata_size);
+				std::vector<char> userdata_data((size_t)userdata_size);
 
 				// Read file contents
 				DWORD result;
-				BOOL read_result = ReadFile(handle_userdata, userdata_data.get(), userdata_size, &result, nullptr);
+				BOOL read_result = ReadFile(handle_userdata, userdata_data.data(), (DWORD)userdata_data.size(), &result, nullptr);
 				CloseHandle(handle_userdata);
 
-				if (read_result == FALSE || result != userdata_size)
+				if (read_result == FALSE || result != userdata_data.size())
 					return;
 
-				// Parse userdata
-				char *userdatap = userdata_data.get();
-				char *userdata_end = userdatap + userdata_size;
-
-				while ((userdata_end - userdatap) >= 8)
-				{
-					// Read userdata key and value
-					uint32_t key_length = Filesystem::Read32(userdatap + 0);
-					uint32_t value_length = Filesystem::Read32(userdatap + 4);
-
-					char *userdata_next = userdatap + 8 + key_length + value_length;
-					if (userdata_next > userdata_end)
-						break;
-
-					// Set userdata
-					std::string key(userdatap + 8, key_length);
-					std::string value(userdatap + 8 + key_length, value_length);
-					userdata.Set(key, value);
-
-					// Read next userdata
-					userdatap = userdata_next;
-				}
+				// Deserialize userdata
+				userdata.Deserialize(userdata_data);
 			}
 		}
 

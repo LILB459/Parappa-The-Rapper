@@ -31,12 +31,9 @@ namespace PaperPup
 			throw PaperPup::RuntimeError("Failed to open main image");
 
 		// Set display mode
-		Render::SetWindow(1920, 1080);
-		Render::SetSync(false, 144, false, true);
-
-		// Userdata test
-		Userdata::Set("settings/window_width", "1920.0");
-		Userdata::Set("settings/window_height", "1080.0");
+		Render::SetWindow(Userdata::GetInteger("render/window_width", 1280), Userdata::GetInteger("render/window_height", 720));
+		Render::SetFullscreen(Userdata::GetBool("render/fullscreen", false));
+		Render::SetSync(Userdata::GetBool("render/limiter_enabled", false), Userdata::GetInteger("render/limiter", 60), Userdata::GetBool("render/tearing_enabled", false), Userdata::GetBool("render/vsync_enabled", true));
 	}
 
 	Engine::~Engine()

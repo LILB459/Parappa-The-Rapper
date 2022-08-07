@@ -15,6 +15,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Platform/Filesystem.h"
+
 namespace PaperPup
 {
 	namespace Userdata
@@ -92,6 +94,32 @@ namespace PaperPup
 						userdata_data.insert(userdata_data.end(), value.begin(), value.end());
 					}
 					return userdata_data;
+				}
+
+				void Deserialize(std::vector<char> &data)
+				{
+					// Deserialize data
+					char *userdatap = data.data();
+					char *userdata_end = userdatap + data.size();
+
+					while ((userdata_end - userdatap) >= 8)
+					{
+						// Read userdata key and value
+						uint32_t key_length = Filesystem::Read32(userdatap + 0);
+						uint32_t value_length = Filesystem::Read32(userdatap + 4);
+
+						char *userdata_next = userdatap + 8 + key_length + value_length;
+						if (userdata_next > userdata_end)
+							break;
+
+						// Set userdata
+						std::string key(userdatap + 8, key_length);
+						std::string value(userdatap + 8 + key_length, value_length);
+						Set(key, value);
+
+						// Read next userdata
+						userdatap = userdata_next;
+					}
 				}
 		};
 	}

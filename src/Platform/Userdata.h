@@ -24,5 +24,77 @@ namespace PaperPup
 		bool Exists(std::string key);
 
 		void Clear(std::string key);
+
+		// Userdata helpers
+		static std::string GetString(std::string key, std::string def)
+		{
+			if (Exists(key))
+			{
+				// Return string value
+				return Get(key);
+			}
+
+			// Set and return default
+			Set(key, def);
+			return def;
+		}
+
+		static double GetNumber(std::string key, double def)
+		{
+			if (Exists(key))
+			{
+				// Return double value
+				std::string value = Get(key);
+				try
+				{
+					return std::stod(value);
+				}
+				catch (std::invalid_argument &exception) { (void)exception; }
+				catch (std::out_of_range &exception) { (void)exception; }
+			}
+
+			// Set and return default
+			Set(key, std::to_string(def));
+			return def;
+		}
+
+		static int GetInteger(std::string key, int def)
+		{
+			if (Exists(key))
+			{
+				// Return integer value
+				std::string value = Get(key);
+				try
+				{
+					return std::stoi(value);
+				}
+				catch (std::invalid_argument &exception) { (void)exception; }
+				catch (std::out_of_range &exception) { (void)exception; }
+			}
+
+			// Set and return default
+			Set(key, std::to_string(def));
+			return def;
+		}
+
+		static bool GetBool(std::string key, bool def)
+		{
+			return GetInteger(key, def);
+		}
+
+		static void SetNumber(std::string key, double value)
+		{
+			Set(key, std::to_string(value));
+		}
+
+		static void SetInteger(std::string key, int value)
+		{
+			Set(key, std::to_string(value));
+		}
+
+		static void SetBool(std::string key, bool value)
+		{
+			SetInteger(key, value);
+		}
 	}
 }
