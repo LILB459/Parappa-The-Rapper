@@ -20,7 +20,15 @@ namespace PaperPup
 {
 	namespace Audio
 	{
-		// Sound classes
+		// Audio classes
+		class Lock
+		{
+			public:
+				// Locks the audio thread during lifetime
+				Lock();
+				~Lock();
+		};
+
 		class SoundSource
 		{
 			public:
@@ -44,7 +52,32 @@ namespace PaperPup
 				virtual void Stop() = 0;
 		};
 
-		template <typename T>
+		template <class T>
+		class SoundPtr
+		{
+			private:
+				// Lock during pointer's lifetime
+				Lock lock;
+				
+				// Held source
+				T *source;
+
+			public:
+				// Sound pointer interface
+				SoundPtr(T *_source) : lock(), source(_source) {}
+				~SoundPtr() {}
+
+				T &operator*()
+				{
+					return *source;
+				}
+				T *operator->()
+				{
+					return source;
+				}
+		};
+
+		template <class T>
 		class Sound
 		{
 			private:
@@ -54,11 +87,10 @@ namespace PaperPup
 
 			public:
 				// Sound interface
-				Sound(T *_source) // Ownership of source is taken
+				template <class... Args>
+				static Sound<T> *New(Args&&... args)
 				{
-					// Create backend for source
-					source = _source;
-					backend = SoundBackend::New(source);
+					return new Sound<T>(new T(std::forward<Args>(args)...));
 				}
 				~Sound()
 				{
@@ -69,14 +101,14 @@ namespace PaperPup
 				void Play() { backend->Play(); }
 				void Stop() { backend->Stop(); }
 
-				T *Source() { return source; }
-		};
+				SoundPtr<T> Source() { return SoundPtr<T>(source); }
 
-		class Mutex
-		{
-			public:
-				Mutex();
-				~Mutex();
+			private:
+				Sound(T *_source) : source(_source)
+				{
+					// Create backend for source
+					backend = SoundBackend::New(source);
+				}
 		};
 
 		// Sound interface

@@ -244,12 +244,6 @@ namespace PaperPup
 			};
 
 			// SPU channel
-			enum ADSRState
-			{
-				Off,
-				Attack
-			};
-
 			class Channel : public Audio::SoundSource
 			{
 				private:
@@ -260,7 +254,7 @@ namespace PaperPup
 					// Channel state
 					size_t tone_p, tone_loop;
 
-					ADSRState adsr_state = ADSRState::Off;
+					bool on = false;
 
 					unsigned long long subposition = 0;
 					unsigned short sample_rate = 0;
@@ -304,8 +298,8 @@ namespace PaperPup
 
 					void Play() override
 					{
-						// Reset ADSR
-						adsr_state = ADSRState::Attack;
+						// Turn on
+						on = true;
 						
 						// Initialize decoding
 						decode.SetPointer(tone_p, tone_loop);
@@ -317,9 +311,8 @@ namespace PaperPup
 
 					void Stop() override
 					{
-						// Stop ADSR
-						if (adsr_state != ADSRState::Off)
-							adsr_state = ADSRState::Off;
+						// Turn off
+						on = false;
 					}
 
 					void Decode(unsigned long out_sample_rate, int16_t *out, size_t frames) override
@@ -335,8 +328,10 @@ namespace PaperPup
 								*out++ = (int16_t)s;
 						};
 
+						unsigned long long subposition_inc = ((unsigned long long)sample_rate << 32) * SAMPLE_RATE / out_sample_rate;
+
 						size_t i = 0;
-						for (; adsr_state != ADSRState::Off && i < frames; i++)
+						for (; on && i < frames; i++)
 						{
 							// Get current sample
 							int16_t s = decode_wave[(subposition >> 32) >> 12];
@@ -356,7 +351,7 @@ namespace PaperPup
 
 							// Increment subposition
 							unsigned long long old_subposition = subposition;
-							subposition += ((unsigned long long)sample_rate << 32) * SAMPLE_RATE / out_sample_rate;
+							subposition += subposition_inc;
 
 							if (((subposition >> 32) >> 12) != ((old_subposition >> 32) >> 12))
 							{
@@ -366,7 +361,7 @@ namespace PaperPup
 								resample_old = s;
 							}
 
-							if ((subposition >> 32) >= (28 << 12))
+							while ((subposition >> 32) >= (28 << 12))
 							{
 								// Decode block
 								DecodeBlock();
@@ -389,8 +384,8 @@ namespace PaperPup
 						unsigned char flags = decode.GetFlags();
 						if ((flags & (Flags::Loop | Flags::LoopADSR)) == Flags::Loop)
 						{
-							// Kill ADSR
-							adsr_state = ADSRState::Off;
+							// Turn off
+							on = false;
 						}
 
 						// Decode next block

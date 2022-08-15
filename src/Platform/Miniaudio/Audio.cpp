@@ -23,10 +23,6 @@ namespace PaperPup
 		// Miniaudio implementation
 		Impl::Impl()
 		{
-			// Initialize miniaudio mutex
-			if (ma_mutex_init(&mutex) != MA_SUCCESS)
-				throw PaperPup::RuntimeError("Failed to initialize miniaudio mutex");
-
 			// Initialize miniaudio context
 			if (ma_context_init(nullptr, 0, nullptr, &context) != MA_SUCCESS)
 				throw PaperPup::RuntimeError("Failed to initialize miniaudio context");
@@ -47,15 +43,16 @@ namespace PaperPup
 				// Mix sounds
 				std::unique_ptr<int32_t[]> mix_buffer = std::make_unique<int32_t[]>(frames_to_do * 2);
 
-				ma_mutex_lock(&impl->mutex);
-				for (auto &i : impl->sounds)
 				{
-					// Add to mix buffer
-					i->Decode(device->sampleRate, output_buffer, frames_to_do);
-					for (size_t j = 0; j < frames_to_do * 2; j++)
-						mix_buffer[j] += output_buffer[j];
+					Lock lock;
+					for (auto &i : impl->sounds)
+					{
+						// Add to mix buffer
+						i->Decode(device->sampleRate, output_buffer, frames_to_do);
+						for (size_t j = 0; j < frames_to_do * 2; j++)
+							mix_buffer[j] += output_buffer[j];
+					}
 				}
-				ma_mutex_unlock(&impl->mutex);
 
 				// Clip mix buffer to output
 				for (size_t i = 0; i < frames_to_do * 2; i++)
@@ -83,7 +80,6 @@ namespace PaperPup
 			
 			ma_device_uninit(&device);
 			ma_context_uninit(&context);
-			ma_mutex_uninit(&mutex);
 		}
 
 		// Sound backend implementation
@@ -101,12 +97,18 @@ namespace PaperPup
 				}
 				~SoundBackend_Impl()
 				{
+					// Lock thread
+					Lock lock;
+
 					// Stop sound
 					g_impl->audio->sounds.erase(source.get());
 				}
 
 				void Play()
 				{
+					// Lock thread
+					Lock lock;
+
 					// Play sound
 					source->Play();
 					g_impl->audio->sounds.insert(source.get());
@@ -114,6 +116,9 @@ namespace PaperPup
 
 				void Stop()
 				{
+					// Lock thread
+					Lock lock;
+
 					// Stop sound
 					g_impl->audio->sounds.erase(source.get());
 					source->Stop();
@@ -125,8 +130,8 @@ namespace PaperPup
 			return new SoundBackend_Impl(_source);
 		}
 
-		// Mutex implementation
-		Mutex::Mutex() { ma_mutex_lock(&g_impl->audio->mutex); }
-		Mutex::~Mutex() { ma_mutex_unlock(&g_impl->audio->mutex); }
+		// Lock implementation
+		Lock::Lock() { g_impl->audio->mutex.lock(); }
+		Lock::~Lock() { g_impl->audio->mutex.unlock(); }
 	}
 }

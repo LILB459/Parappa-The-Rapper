@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <unordered_set>
+#include <mutex>
 
 namespace PaperPup
 {
@@ -31,7 +32,7 @@ namespace PaperPup
 		{
 			public:
 				// Miniaudio objects
-				ma_mutex mutex{};
+				std::recursive_mutex mutex;
 
 				ma_context context{};
 				ma_device device{};

@@ -42,13 +42,12 @@ namespace PaperPup
 
 			ADPCM::SPU::Block *blocks = (ADPCM::SPU::Block *)wave.get();
 			
-			std::unique_ptr<Audio::Sound<ADPCM::SPU::Channel>> sound;
-			{
-				Audio::Mutex mutex;
+			std::unique_ptr<Audio::Sound<ADPCM::SPU::Channel>> sound(Audio::Sound<ADPCM::SPU::Channel>::New(blocks, wave_size, 0, 0));
 
-				sound = std::make_unique<Audio::Sound<ADPCM::SPU::Channel>>(new ADPCM::SPU::Channel(blocks, wave_size, 0, 0));
-				sound->Source()->SetSampleRate(0x1000);
-				sound->Source()->SetVolume(0x3FFF, 0x3FFF);
+			{
+				Audio::SoundPtr<ADPCM::SPU::Channel> channel = sound->Source();
+				channel->SetSampleRate(0x1000 * 37800 / 44100);
+				channel->SetVolume(0x3FFF, 0x3FFF);
 				sound->Play();
 			}
 
