@@ -28,7 +28,7 @@ namespace PaperPup
 		static constexpr size_t TEXTURE_PIXELWIDTH = 2;
 
 		// Texture class
-		class Texture_Win32Impl : public Texture
+		class Texture_Impl : public Texture
 		{
 			private:
 				// D3D11 objects
@@ -42,18 +42,18 @@ namespace PaperPup
 
 			public:
 				// Texture interface
-				Texture_Win32Impl()
+				Texture_Impl()
 				{
 
 				}
 
-				Texture_Win32Impl(unsigned int bind, unsigned int w, unsigned int h, const void *data)
+				Texture_Impl(unsigned int bind, unsigned int w, unsigned int h, const void *data)
 				{
 					// Image texture
 					Image(bind, w, h, data);
 				}
 
-				~Texture_Win32Impl()
+				~Texture_Impl()
 				{
 
 				}
@@ -78,14 +78,14 @@ namespace PaperPup
 					srd.SysMemSlicePitch = (srd.SysMemPitch = (w * TEXTURE_PIXELWIDTH)) * h;
 
 					// Create texture
-					if (FAILED(g_win32_impl->render->device->CreateTexture2D(&desc, data ? &srd : nullptr, texture.GetAddressOf())))
+					if (FAILED(g_impl->render->device->CreateTexture2D(&desc, data ? &srd : nullptr, texture.GetAddressOf())))
 						throw PaperPup::RuntimeError("Failed to create D3D11 texture");
 
 					// Create shader render view
 					if (bind & TextureBind::Resource)
 					{
 						CD3D11_SHADER_RESOURCE_VIEW_DESC srv_desc(D3D11_SRV_DIMENSION_TEXTURE2D, TEXTURE_FORMAT, 0, 1, 0, 1);
-						if (FAILED(g_win32_impl->render->device->CreateShaderResourceView(texture.Get(), &srv_desc, texture_srv.GetAddressOf())))
+						if (FAILED(g_impl->render->device->CreateShaderResourceView(texture.Get(), &srv_desc, texture_srv.GetAddressOf())))
 							throw PaperPup::RuntimeError("Failed to create texture shader render view");
 					}
 
@@ -93,7 +93,7 @@ namespace PaperPup
 					if (bind & TextureBind::Target)
 					{
 						CD3D11_RENDER_TARGET_VIEW_DESC rtv_desc(D3D11_RTV_DIMENSION_TEXTURE2D, TEXTURE_FORMAT, 0, 0, 1);
-						if (FAILED(g_win32_impl->render->device->CreateRenderTargetView(texture.Get(), &rtv_desc, texture_rtv.GetAddressOf())))
+						if (FAILED(g_impl->render->device->CreateRenderTargetView(texture.Get(), &rtv_desc, texture_rtv.GetAddressOf())))
 							throw PaperPup::RuntimeError("Failed to create texture render view");
 					}
 				}
@@ -102,7 +102,7 @@ namespace PaperPup
 				{
 					// Map texture subresource
 					D3D11_MAPPED_SUBRESOURCE texture_subresource;
-					if (FAILED(g_win32_impl->render->device_context->Map(texture.Get(), 0, D3D11_MAP_WRITE, 0, &texture_subresource)))
+					if (FAILED(g_impl->render->device_context->Map(texture.Get(), 0, D3D11_MAP_WRITE, 0, &texture_subresource)))
 						throw PaperPup::RuntimeError("Failed to map texture subresource");
 
 					// Copy into texture area
@@ -117,31 +117,31 @@ namespace PaperPup
 					}
 
 					// Unmap texture subresource
-					g_win32_impl->render->device_context->Unmap(texture.Get(), 0);
+					g_impl->render->device_context->Unmap(texture.Get(), 0);
 				}
 		};
 
 		Texture *Texture::New()
 		{
 			// Create new implementation texture
-			return new Texture_Win32Impl();
+			return new Texture_Impl();
 		}
 
 		Texture *Texture::New(unsigned int bind, unsigned int w, unsigned int h, const void *data)
 		{
 			// Create new implementation texture
-			return new Texture_Win32Impl(bind, w, h, data);
+			return new Texture_Impl(bind, w, h, data);
 		}
 
 		// Win32 implementation interface
-		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
+		Impl::Impl(PaperPup::Impl &impl)
 		{
 			// Define window class
 			WNDCLASSEXW window_class = {};
 			window_class.cbSize = sizeof(WNDCLASSEX);
 
 			window_class.style = CS_HREDRAW | CS_VREDRAW;
-			window_class.lpfnWndProc = Input::Win32Impl::WindowProc;
+			window_class.lpfnWndProc = Input::Impl::WindowProc;
 			window_class.hInstance = GetModuleHandleW(nullptr);
 			window_class.hIcon = LoadIconW(window_class.hInstance, L"PAPERPUP_ICON");
 			window_class.hIconSm = LoadIconW(window_class.hInstance, L"PAPERPUP_ICONSM");
@@ -208,7 +208,7 @@ namespace PaperPup
 			CreateSwapChain(nullptr);
 		}
 
-		Win32Impl::~Win32Impl()
+		Impl::~Impl()
 		{
 			// Ensure swap chain is windowed before we exit
 			if (swap_chain != nullptr)
@@ -219,7 +219,7 @@ namespace PaperPup
 				DestroyWindow(window);
 		}
 
-		void Win32Impl::CreateSwapChain(const DXGI_MODE_DESC *output_mode)
+		void Impl::CreateSwapChain(const DXGI_MODE_DESC *output_mode)
 		{
 			// Get swap chain description
 			DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
@@ -271,7 +271,7 @@ namespace PaperPup
 				throw PaperPup::RuntimeError("Failed to set swap chain window association");
 		}
 
-		void Win32Impl::CreateSwapChainRTV()
+		void Impl::CreateSwapChainRTV()
 		{
 			// Get backbuffer
 			ComPtr<ID3D11Texture2D> backbuffer;
@@ -289,7 +289,7 @@ namespace PaperPup
 				throw PaperPup::RuntimeError("Failed to create render target view");
 		}
 
-		void Win32Impl::Resize()
+		void Impl::Resize()
 		{
 			// Check swap chain
 			if (swap_chain == nullptr)
@@ -317,7 +317,7 @@ namespace PaperPup
 			device_context->RSSetViewports(1, &viewport);
 		}
 
-		void Win32Impl::SetWindow(unsigned int width, unsigned int height)
+		void Impl::SetWindow(unsigned int width, unsigned int height)
 		{
 			// Get containing output
 			ComPtr<IDXGIOutput> dxgi_output;
@@ -348,7 +348,7 @@ namespace PaperPup
 			ShowWindow(window, SW_NORMAL);
 		}
 
-		bool Win32Impl::IsFullscreen()
+		bool Impl::IsFullscreen()
 		{
 			// Get fullscreen state from swap chain
 			BOOL result;
@@ -357,7 +357,7 @@ namespace PaperPup
 			return result;
 		}
 
-		void Win32Impl::SetFullscreen(bool fullscreen)
+		void Impl::SetFullscreen(bool fullscreen)
 		{
 			if (fullscreen)
 			{
@@ -402,7 +402,7 @@ namespace PaperPup
 			}
 		}
 
-		void Win32Impl::SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
+		void Impl::SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
 		{
 			// Set sync state
 			sync_limiter_enabled = limiter_enabled && (limiter != 0) && !vsync_enabled;
@@ -430,13 +430,13 @@ namespace PaperPup
 			}
 		}
 
-		void Win32Impl::StartFrame()
+		void Impl::StartFrame()
 		{
 			// Prepare swap chain
 			
 		}
 
-		void Win32Impl::EndFrame()
+		void Impl::EndFrame()
 		{
 			// Present swap chain
 			if (sync_vsync_enabled)
@@ -471,37 +471,37 @@ namespace PaperPup
 		void SetWindow(unsigned int width, unsigned int height)
 		{
 			// Set implementation window
-			g_win32_impl->render->SetWindow(width, height);
+			g_impl->render->SetWindow(width, height);
 		}
 
 		bool IsFullscreen()
 		{
 			// Return implementation fullscreen
-			return g_win32_impl->render->IsFullscreen();
+			return g_impl->render->IsFullscreen();
 		}
 
 		void SetFullscreen(bool fullscreen)
 		{
 			// Set implementation fullscreen
-			g_win32_impl->render->SetFullscreen(fullscreen);
+			g_impl->render->SetFullscreen(fullscreen);
 		}
 
 		void SetSync(bool limiter_enabled, unsigned int limiter, bool tearing_enabled, bool vsync_enabled)
 		{
 			// Set implementation sync
-			g_win32_impl->render->SetSync(limiter_enabled, limiter, tearing_enabled, vsync_enabled);
+			g_impl->render->SetSync(limiter_enabled, limiter, tearing_enabled, vsync_enabled);
 		}
 
 		void StartFrame()
 		{
 			// Start implementation frame
-			g_win32_impl->render->StartFrame();
+			g_impl->render->StartFrame();
 		}
 
 		void EndFrame()
 		{
 			// End implementation frame
-			g_win32_impl->render->EndFrame();
+			g_impl->render->EndFrame();
 		}
 	}
 }

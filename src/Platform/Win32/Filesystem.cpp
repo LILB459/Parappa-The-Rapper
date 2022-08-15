@@ -75,7 +75,7 @@ namespace PaperPup
 		}
 
 		// Image interface
-		class Binary_Win32Impl : public Binary
+		class Binary_Impl : public Binary
 		{
 			private:
 				// Binary handle
@@ -83,13 +83,13 @@ namespace PaperPup
 
 			public:
 				// Binary interface
-				Binary_Win32Impl(HANDLE _handle_bin): handle_bin(_handle_bin)
+				Binary_Impl(HANDLE _handle_bin): handle_bin(_handle_bin)
 				{
 					// Parse binary directory
 					ParseDirectory();
 				}
 
-				~Binary_Win32Impl()
+				~Binary_Impl()
 				{
 					// Close binary file
 					CloseHandle(handle_bin);
@@ -124,7 +124,7 @@ namespace PaperPup
 				}
 		};
 
-		class Archive_Win32Impl : public Archive
+		class Archive_Impl : public Archive
 		{
 			private:
 				// Archive path and file
@@ -133,10 +133,10 @@ namespace PaperPup
 				
 			public:
 				// Archive interface
-				Archive_Win32Impl(Image *image, std::string name)
+				Archive_Impl(Image *image, std::string name)
 				{
 					// Get path
-					path_archive = g_win32_impl->filesystem->module_path + Win32::UTF8ToWide(name) + L"\\";
+					path_archive = g_impl->filesystem->module_path + Win32::UTF8ToWide(name) + L"\\";
 
 					// Open archive file
 					File *file_archive = image->OpenFile(name + ".INT", false);
@@ -144,7 +144,7 @@ namespace PaperPup
 						archive = std::make_unique<IntArchive>(file_archive);
 				}
 
-				~Archive_Win32Impl() override
+				~Archive_Impl() override
 				{
 
 				}
@@ -186,29 +186,29 @@ namespace PaperPup
 				}
 		};
 
-		class Image_Win32Impl : public Image
+		class Image_Impl : public Image
 		{
 			public:
 				// Image path and binary
 				std::wstring path_image;
-				std::unique_ptr<Binary_Win32Impl> binary;
+				std::unique_ptr<Binary_Impl> binary;
 
 			public:
 				// Image interface
-				Image_Win32Impl(std::string name)
+				Image_Impl(std::string name)
 				{
 					// Get path
 					std::wstring path_name = Win32::UTF8ToWide(name);
-					std::wstring path_bin = g_win32_impl->filesystem->module_path + path_name + L".bin";
-					path_image = g_win32_impl->filesystem->module_path + path_name + L"\\";
+					std::wstring path_bin = g_impl->filesystem->module_path + path_name + L".bin";
+					path_image = g_impl->filesystem->module_path + path_name + L"\\";
 
 					// Open binary file
 					HANDLE handle_bin = CreateFileW(path_bin.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
 					if (handle_bin != INVALID_HANDLE_VALUE)
-						binary = std::make_unique<Binary_Win32Impl>(handle_bin);
+						binary = std::make_unique<Binary_Impl>(handle_bin);
 				}
 
-				~Image_Win32Impl() override
+				~Image_Impl() override
 				{
 					
 				}
@@ -216,7 +216,7 @@ namespace PaperPup
 				Archive *OpenArchive(std::string name)
 				{
 					// Open archive
-					return new Archive_Win32Impl(this, name);
+					return new Archive_Impl(this, name);
 				}
 
 				File *OpenFile(std::string name, bool mode2) override
@@ -267,17 +267,17 @@ namespace PaperPup
 		Image *Image::Open(std::string name)
 		{
 			// Open image
-			return new Image_Win32Impl(name);
+			return new Image_Impl(name);
 		}
 
 		// Win32 implementation interface
-		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
+		Impl::Impl(PaperPup::Impl &impl)
 		{
 			// Get module path
 			module_path = GetModulePath();
 		}
 
-		Win32Impl::~Win32Impl()
+		Impl::~Impl()
 		{
 
 		}
@@ -286,7 +286,7 @@ namespace PaperPup
 		std::vector<std::string> GetPackList()
 		{
 			// Get packs folder
-			std::wstring path_packs = g_win32_impl->filesystem->module_path + L"Packs";
+			std::wstring path_packs = g_impl->filesystem->module_path + L"Packs";
 			if (!DirectoryExists(path_packs))
 				throw PaperPup::RuntimeError("Packs folder doesn't exist");
 

@@ -20,7 +20,7 @@ namespace PaperPup
 	namespace Filesystem
 	{
 		// Win32 implementation
-		class Win32Impl
+		class Impl
 		{
 			public:
 				// Module path
@@ -28,8 +28,8 @@ namespace PaperPup
 
 			public:
 				// Win32 implementation interface
-				Win32Impl(PaperPup::Win32Impl &win32_impl);
-				~Win32Impl();
+				Impl(PaperPup::Impl &impl);
+				~Impl();
 		};
 	}
 }

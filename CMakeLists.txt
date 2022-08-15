@@ -42,6 +42,7 @@ add_executable(PaperPup WIN32
 	"src/Platform/Filesystem.h"
 	"src/Platform/Userdata.h"
 	"src/Platform/Render.h"
+	"src/Platform/Audio.h"
 	"src/Platform/Input.h"
 
 	# = Platform Common =
@@ -110,16 +111,16 @@ if(MSVC)
 	target_compile_definitions(PaperPup PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
-#####################
+######################
 # Determine platform #
-#####################
+######################
 if(WIN32)
 	set(PAPERPUP_PLATFORM "Win32")
 endif()
 
-##########
-# Win32  #
-##########
+#########
+# Win32 #
+#########
 if(PAPERPUP_PLATFORM MATCHES "Win32")
 	message(STATUS "[PaperPup] Targeting Win32")
 
@@ -137,13 +138,18 @@ if(PAPERPUP_PLATFORM MATCHES "Win32")
 		"src/Platform/Win32/Input.cpp"
 		"src/Platform/Win32/Input.h"
 
+		# = Miniaudio =
+		"src/Platform/Miniaudio/Audio.cpp"
+		"src/Platform/Miniaudio/Audio.h"
+		"lib/miniaudio/miniaudio.h"
+
 		# = Win32 Resources =
 		"res/PaperPup.rc"
 		"res/PaperPup.manifest"
 	)
 	
 	# Set defines
-	target_compile_definitions(PaperPup PRIVATE PAPERPUP_PLATFORM_WIN32)
+	target_compile_definitions(PaperPup PRIVATE PAPERPUP_PLATFORM_WIN32 PAPERPUP_PLATFORM_MINIAUDIO)
 	set(PAPERPUP_PLATFORM_WIN32 ON)
 	
 	# Use UTF-16 functionality where possible

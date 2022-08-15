@@ -18,10 +18,10 @@ namespace PaperPup
 	namespace Userdata
 	{
 		// Win32 implementation interface
-		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
+		Impl::Impl(PaperPup::Impl &impl)
 		{
 			// Open userdata file
-			std::wstring path_userdata = win32_impl.filesystem->module_path + L"Userdata.bin";
+			std::wstring path_userdata = impl.filesystem->module_path + L"Userdata.bin";
 
 			HANDLE handle_userdata = CreateFileW(path_userdata.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
 			if (handle_userdata != INVALID_HANDLE_VALUE)
@@ -45,10 +45,13 @@ namespace PaperPup
 			}
 		}
 
-		Win32Impl::~Win32Impl()
+		Impl::~Impl()
 		{
+			if (g_impl == nullptr || g_impl->filesystem == nullptr)
+				return;
+
 			// Open userdata file
-			std::wstring path_userdata = g_win32_impl->filesystem->module_path + L"Userdata.bin";
+			std::wstring path_userdata = g_impl->filesystem->module_path + L"Userdata.bin";
 
 			HANDLE handle_userdata = CreateFileW(path_userdata.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, 0, nullptr);
 			if (handle_userdata != INVALID_HANDLE_VALUE)
@@ -66,25 +69,25 @@ namespace PaperPup
 		void Set(std::string key, std::string value)
 		{
 			// Set in implementation
-			g_win32_impl->userdata->userdata.Set(key, value);
+			g_impl->userdata->userdata.Set(key, value);
 		}
 
 		std::string Get(std::string key)
 		{
 			// Get from implementation
-			return g_win32_impl->userdata->userdata.Get(key);
+			return g_impl->userdata->userdata.Get(key);
 		}
 
 		bool Exists(std::string key)
 		{
 			// Get from implementation
-			return g_win32_impl->userdata->userdata.Exists(key);
+			return g_impl->userdata->userdata.Exists(key);
 		}
 
 		void Clear(std::string key)
 		{
 			// Clear in implementation
-			g_win32_impl->userdata->userdata.Clear(key);
+			g_impl->userdata->userdata.Clear(key);
 		}
 	}
 }

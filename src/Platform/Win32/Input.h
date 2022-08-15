@@ -20,15 +20,15 @@ namespace PaperPup
 	namespace Input
 	{
 		// Win32 implementation
-		class Win32Impl
+		class Impl
 		{
 			public:
 			
 
 			public:
 				// Win32 implementation interface
-				Win32Impl(PaperPup::Win32Impl &win32_impl);
-				~Win32Impl();
+				Impl(PaperPup::Impl &impl);
+				~Impl();
 
 				static LRESULT WindowProc(HWND parent, UINT message, WPARAM wparam, LPARAM lparam);
 		};

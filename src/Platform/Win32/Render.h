@@ -24,7 +24,7 @@ namespace PaperPup
 	namespace Render
 	{
 		// Win32 implementation
-		class Win32Impl
+		class Impl
 		{
 			public:
 				// Window handle
@@ -59,8 +59,8 @@ namespace PaperPup
 
 			public:
 				// Win32 implementation interface
-				Win32Impl(PaperPup::Win32Impl &win32_impl);
-				~Win32Impl();
+				Impl(PaperPup::Impl &impl);
+				~Impl();
 
 				void CreateSwapChain(const DXGI_MODE_DESC *output_mode);
 				void CreateSwapChainRTV();

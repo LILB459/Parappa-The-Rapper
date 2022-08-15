@@ -16,6 +16,8 @@
 #include "Platform/Win32/Render.h"
 #include "Platform/Win32/Input.h"
 
+#include "Platform/Miniaudio/Audio.h"
+
 #include <shellapi.h>
 
 // Prioritize High-Performance Adapters
@@ -27,18 +29,19 @@ extern "C" { _declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0
 namespace PaperPup
 {
 	// Win32 implementation
-	Win32Impl *g_win32_impl = nullptr;
+	Impl *g_impl = nullptr;
 
-	Win32Impl::Win32Impl()
+	Impl::Impl()
 	{
 		// Initialize systems
-		filesystem = std::make_unique<Filesystem::Win32Impl>(*this);
-		userdata = std::make_unique<Userdata::Win32Impl>(*this);
-		render = std::make_unique<Render::Win32Impl>(*this);
-		input = std::make_unique<Input::Win32Impl>(*this);
+		filesystem = std::make_unique<Filesystem::Impl>(*this);
+		userdata = std::make_unique<Userdata::Impl>(*this);
+		render = std::make_unique<Render::Impl>(*this);
+		audio = std::make_unique<Audio::Impl>();
+		input = std::make_unique<Input::Impl>(*this);
 	}
 
-	Win32Impl::~Win32Impl()
+	Impl::~Impl()
 	{
 		
 	}
@@ -48,9 +51,9 @@ namespace PaperPup
 	{
 		// Show error message box
 		HWND window = nullptr;
-		if (g_win32_impl != nullptr)
-			if (g_win32_impl->render != nullptr)
-				window = g_win32_impl->render->window;
+		if (g_impl != nullptr)
+			if (g_impl->render != nullptr)
+				window = g_impl->render->window;
 		MessageBoxW(window, (L"PaperPup Runtime Error:\n" + Win32::UTF8ToWide(_error)).c_str(), L"PaperPup", MB_ICONERROR);
 	}
 }
@@ -80,14 +83,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	try
 	{
 		// Initialize PaperPup implementation
-		PaperPup::g_win32_impl = new PaperPup::Win32Impl();
+		PaperPup::g_impl = new PaperPup::Impl();
 
 		// Enter app facing entry point
 		result = PaperPup::Main(args);
 
 		// Delete PaperPup implementation
-		delete PaperPup::g_win32_impl;
-		PaperPup::g_win32_impl = nullptr;
+		delete PaperPup::g_impl;
+		PaperPup::g_impl = nullptr;
 	}
 	catch (PaperPup::RuntimeError &exception)
 	{
@@ -95,10 +98,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		PaperPup::DisplayError(exception.what());
 
 		// Delete PaperPup implementation
-		if (PaperPup::g_win32_impl != nullptr)
+		if (PaperPup::g_impl != nullptr)
 		{
-			delete PaperPup::g_win32_impl;
-			PaperPup::g_win32_impl = nullptr;
+			delete PaperPup::g_impl;
+			PaperPup::g_impl = nullptr;
 		}
 	}
 

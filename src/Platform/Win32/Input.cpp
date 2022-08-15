@@ -18,17 +18,17 @@ namespace PaperPup
 	namespace Input
 	{
 		// Win32 implementation
-		Win32Impl::Win32Impl(PaperPup::Win32Impl &win32_impl)
+		Impl::Impl(PaperPup::Impl &impl)
 		{
 
 		}
 
-		Win32Impl::~Win32Impl()
+		Impl::~Impl()
 		{
 
 		}
 
-		LRESULT Win32Impl::WindowProc(HWND parent, UINT message, WPARAM wparam, LPARAM lparam)
+		LRESULT Impl::WindowProc(HWND parent, UINT message, WPARAM wparam, LPARAM lparam)
 		{
 			// Handle message
 			switch (message)
@@ -44,7 +44,7 @@ namespace PaperPup
 				case WM_SIZE:
 				{
 					// Update render window
-					g_win32_impl->render->Resize();
+					g_impl->render->Resize();
 					break;
 				}
 			}
