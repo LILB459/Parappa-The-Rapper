@@ -13,6 +13,10 @@
 
 #include "Platform/Audio.h"
 
+#define MA_NO_DECODING
+#define MA_NO_ENCODING
+#define MA_NO_GENERATION
+
 #include <miniaudio/miniaudio.h>
 
 #include <memory>
@@ -27,10 +31,10 @@ namespace PaperPup
 		{
 			public:
 				// Miniaudio objects
+				ma_mutex mutex{};
+
 				ma_context context{};
 				ma_device device{};
-
-				ma_mutex mutex{};
 
 				// Sound set
 				std::unordered_set<SoundSource*> sounds;
