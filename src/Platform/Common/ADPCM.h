@@ -268,16 +268,6 @@ namespace PaperPup
 
 					void SetVolume(short _vol_l, short _vol_r)
 					{
-						// Clamp volumes to 14 bit range
-						if (_vol_r < -0x3FFF)
-							_vol_r = -0x3FFF;
-						if (_vol_r > 0x3FFF)
-							_vol_r = 0x3FFF;
-						if (_vol_l < -0x3FFF)
-							_vol_l = -0x3FFF;
-						if (_vol_l > 0x3FFF)
-							_vol_l = 0x3FFF;
-
 						// Set channel volume
 						vol_l = _vol_l;
 						vol_r = _vol_r;
@@ -303,6 +293,16 @@ namespace PaperPup
 					void Decode(int16_t *out, size_t frames)
 					{
 						// Decode samples
+						auto OutSample = [&](long s)
+						{
+							if (s < -0x7FFF)
+								*out++ = -0x7FFF;
+							else if (s > 0x7FFF)
+								*out++ = 0x7FFF;
+							else
+								*out++ = (int16_t)s;
+						};
+
 						for (size_t i = 0; i < frames; i++)
 						{
 							// Get current sample
@@ -318,8 +318,8 @@ namespace PaperPup
 							rs += (((long)gaussian[0x000 + ri]) * (long)s) >> 15;
 
 							// Output sample
-							*out++ = (int16_t)((rs * vol_l) >> 14);
-							*out++ = (int16_t)((rs * vol_r) >> 14);
+							OutSample((rs * vol_l) >> 14);
+							OutSample((rs * vol_r) >> 14);
 
 							// Increment subposition
 							unsigned long old_subposition = subposition;
@@ -333,7 +333,7 @@ namespace PaperPup
 								resample_old = s;
 							}
 
-							while (subposition >= (28 << 12))
+							if (subposition >= (28 << 12))
 							{
 								// Decode block
 								DecodeBlock();
