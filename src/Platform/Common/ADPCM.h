@@ -311,6 +311,13 @@ namespace PaperPup
 						resample_old = resample_older = resample_oldest = 0;
 					}
 
+					void KeyOff()
+					{
+						// Stop ADSR
+						if (adsr_state != ADSRState::Off)
+							adsr_state = ADSRState::Off; // ADSRState::Release
+					}
+
 					void Decode(int16_t *out, size_t frames)
 					{
 						// Decode samples
