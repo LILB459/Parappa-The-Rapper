@@ -114,7 +114,7 @@ namespace PaperPup
 			enum Flags
 			{
 				Loop = (1 << 0),
-				Sustain = (1 << 1),
+				LoopADSR = (1 << 1),
 				SetLoop = (1 << 2)
 			};
 
@@ -161,7 +161,7 @@ namespace PaperPup
 						block_loop = loop;
 					}
 
-					void DecodeBlock(int16_t *out)
+					void DecodeBlock(short *out)
 					{
 						// Get block pointer
 						Block *blockp = memory_p + block_p;
@@ -200,7 +200,7 @@ namespace PaperPup
 								s = 0x7FFF;
 
 							// Write sample
-							*out++ = (int16_t)s;
+							*out++ = (short)s;
 							filter_older = filter_old;
 							filter_old = s;
 						};
@@ -227,6 +227,15 @@ namespace PaperPup
 						}
 					}
 
+					unsigned char GetFlags()
+					{
+						// Get block pointer
+						Block *blockp = memory_p + block_p;
+
+						// Return block flags
+						return (*blockp)[1];
+					}
+
 					operator bool()
 					{
 						return memory_p != nullptr;
@@ -234,14 +243,25 @@ namespace PaperPup
 			};
 
 			// SPU channel
+			enum ADSRState
+			{
+				Off,
+				Attack,
+				Decay,
+				Sustain,
+				Release
+			};
+
 			class Channel
 			{
 				private:
 					// Decode state
 					Decode decode;
-					int16_t decode_wave[28];
+					short decode_wave[28] = {};
 
 					// Channel state
+					ADSRState adsr_state = ADSRState::Off;
+
 					unsigned long subposition = 0;
 					unsigned short sample_rate = 0;
 					short vol_l = 0, vol_r = 0;
@@ -281,6 +301,7 @@ namespace PaperPup
 					void KeyOn(size_t p, size_t loop)
 					{
 						// Reset ADSR
+						adsr_state = ADSRState::Attack;
 						
 						// Initialize decoding
 						decode.SetPointer(p, loop);
@@ -303,7 +324,8 @@ namespace PaperPup
 								*out++ = (int16_t)s;
 						};
 
-						for (size_t i = 0; i < frames; i++)
+						size_t i = 0;
+						for (; adsr_state != ADSRState::Off && i < frames; i++)
 						{
 							// Get current sample
 							int16_t s = decode_wave[subposition >> 12];
@@ -340,12 +362,27 @@ namespace PaperPup
 								subposition -= (28 << 12);
 							}
 						}
+
+						// Clear remaining output
+						for (; i < frames; i++)
+						{
+							*out++ = 0;
+							*out++ = 0;
+						}
 					}
 
 				private:
 					void DecodeBlock()
 					{
-						// Decode block and handle sustain flag
+						// Handle flags
+						unsigned char flags = decode.GetFlags();
+						if ((flags & (Flags::Loop | Flags::LoopADSR)) == Flags::Loop)
+						{
+							// Kill ADSR
+							adsr_state = ADSRState::Off;
+						}
+
+						// Decode next block
 						decode.DecodeBlock(decode_wave);
 					}
 			};
