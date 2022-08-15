@@ -45,6 +45,7 @@ add_executable(PaperPup WIN32
 	"src/Platform/Input.h"
 
 	# = Platform Common =
+	"src/Platform/Common/ADPCM.h"
 	"src/Platform/Common/Userdata.h"
 	"src/Platform/Common/Mode2.h"
 	"src/Platform/Common/Binary.h"

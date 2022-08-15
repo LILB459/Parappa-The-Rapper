@@ -29,7 +29,7 @@ namespace PaperPup
 			virtual State *Start() = 0;
 
 			virtual Filesystem::Archive *OpenArchive(std::string name) = 0;
-			virtual Filesystem::File *OpenFile(std::string name, bool mode2) = 0;
+			virtual Filesystem::File *OpenFile(std::string name, bool mode2 = false) = 0;
 	};
 
 	class Engine
@@ -67,7 +67,7 @@ namespace PaperPup
 				return nullptr;
 			}
 
-			Filesystem::File *OpenFile(std::string name, bool mode2)
+			Filesystem::File *OpenFile(std::string name, bool mode2 = false)
 			{
 				Filesystem::File *file;
 				if (state != nullptr)

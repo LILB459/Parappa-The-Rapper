@@ -35,7 +35,7 @@ namespace PaperPup
 				virtual ~Image() {}
 
 				virtual Archive *OpenArchive(std::string name) = 0;
-				virtual File *OpenFile(std::string name, bool mode2) = 0;
+				virtual File *OpenFile(std::string name, bool mode2 = false) = 0;
 		};
 
 		// Archive class
